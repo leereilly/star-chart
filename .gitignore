@@ -1,0 +1,9 @@
+node_modules/
+build/
+dist-types/
+coverage/
+preview/
+*.log
+.DS_Store
+
+.scratch/

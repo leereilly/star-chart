@@ -1,0 +1,115 @@
+# Contributing to Star Chart
+
+Thanks for your interest in improving Star Chart! This guide covers the local
+workflow and the invariants CI enforces.
+
+## Prerequisites
+
+- **Node 24** (the action runtime). CI runs on Node 24. Newer local versions
+  generally work for development; the committed bundle targets Node 24.
+- npm (the repository ships a `package-lock.json`; use `npm ci`).
+
+## Getting started
+
+```bash
+npm ci
+npm test
+```
+
+## Project layout
+
+```
+src/
+  index.ts          Action entrypoint (thin; wires @actions/core -> run)
+  run.ts            Dependency-injected orchestration
+  lib.ts            Side-effect-free programmatic API
+  models/           Shared domain types
+  config/           Input parsing, validation, themes
+  api/              Octokit client, retries, repository + history fetch
+  history/          normalize -> window -> bucket -> chart model
+  renderers/        shared, contributions, charts (line/area/bar/sparkline),
+                    animation, registry (index.ts)
+  utils/            dates, numbers, svg escaping, path, atomic write
+tests/              vitest suites, fixtures, helpers
+scripts/            build, generate-examples, test-bundle, browser-preview
+examples/           committed, deterministic example SVGs
+docs/               static Primer setup site and small synthetic previews
+dist/               committed, bundled action + programmatic API
+```
+
+## The pipeline
+
+Data flows in one direction:
+
+**API client → `normalizeHistory` → `selectWindow` → `bucketWindow` →
+`buildChartModel` → renderer → SVG string → atomic write.**
+
+Each step is independently testable and pure where possible. `run()` takes an
+injected `RunDeps` object so the entire orchestration can be exercised without
+touching the real network or `@actions/core`.
+
+## Adding a renderer
+
+1. Add a `render<Style>(model: ChartModel): string` function.
+2. Register it in `src/renderers/index.ts`.
+3. Add the style to the `ChartStyle` union and the `style` enum in
+   `src/config/inputs.ts` and `action.yml`.
+4. Add tests and example coverage.
+
+Renderers must emit **standalone** SVG: no DOM, scripts, or external resources.
+Local gradients, hatch patterns, and bounded blur filters are supported;
+their deterministic IDs must resolve within the document.
+Escape all text/attributes via `src/utils/svg.ts`, use
+CSS classes (not `var()` in presentation attributes) for themed colours, and
+keep geometry finite.
+
+## Required checks
+
+Before opening a PR, run the full gate:
+
+```bash
+npm test
+npm run typecheck
+npm run lint
+npm run format:check
+npm run build
+npm run examples
+npm run test:bundle
+npm pack --dry-run
+```
+
+## Regenerating `dist/` and `examples/`
+
+These and `docs/samples/` are committed and **verified for drift in CI**. If you change source or
+rendering, regenerate and commit them:
+
+```bash
+npm run build
+npm run examples
+git add dist examples docs/samples
+```
+
+CI fails if a fresh `npm run build` / `npm run examples` would produce any
+tracked change or new untracked file. Builds are reproducible — no build-time
+timestamps are injected, and examples use a fixed synthetic clock.
+
+## Tests & snapshots
+
+- Every rendered SVG is parsed as XML and checked for duplicate IDs, broken
+  `url(#…)` references, scripts/external resources, and non-finite geometry.
+- Snapshots and examples use a fixed clock for determinism.
+- Animation tests assert timing/step invariants (grid-aligned tips, chronological
+  overlap, loop hold/reset), not just string presence.
+- The bundle smoke test runs the built action in a subprocess against a preload
+  `fetch` stub; unexpected network requests fail the test.
+
+## Commit conventions
+
+Keep changes focused. Regenerate `dist/`/`examples/` in the same PR as the
+source change that requires them. Do not add publishing, tagging, or release
+automation without discussion.
+
+## License
+
+By contributing you agree that your contributions are licensed under the
+project's [MIT License](LICENSE).

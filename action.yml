@@ -1,0 +1,257 @@
+name: Star Chart
+description: Generate beautiful, self-updating star history charts for your GitHub README.
+author: Lee Reilly
+branding:
+  icon: star
+  color: green
+
+inputs:
+  token:
+    description: >-
+      GitHub token used for API requests. Defaults to the workflow token. An
+      empty value uses unauthenticated public access (subject to lower rate
+      limits).
+    required: false
+    default: ${{ github.token }}
+  repository:
+    description: 'Repository to chart, as "owner/repo". Defaults to the current repository.'
+    required: false
+    default: ${{ github.repository }}
+  repositories:
+    description: >-
+      Optional comma- or newline-separated list of "owner/repo" values to
+      aggregate into one chart, or compare with clustered-bar (maximum 20). Blank (default)
+      charts only "repository". A non-blank list takes precedence over
+      "repository"; duplicates are ignored case-insensitively and any
+      repository that fails to fetch fails the whole run.
+    required: false
+    default: ''
+  output:
+    description: Workspace-relative path for the generated SVG (must end in .svg).
+    required: false
+    default: assets/star-chart.svg
+  style:
+    description: >-
+      Chart style: contributions, line, area, bar, sparkline, grid, step-line,
+      milestone-scatter, milestone-area, clustered-bar, neon-glow,
+      neon-glow-stream, ascii-terminal, or hand-drawn.
+    required: false
+    default: contributions
+  theme:
+    description: 'Colour theme: light, dark, or auto (uses prefers-color-scheme).'
+    required: false
+    default: light
+  dual_theme:
+    description: >-
+      Write two files instead of one: a fixed light and a fixed dark SVG whose
+      paths are derived from "output" ("chart.svg" -> "chart-light.svg" and
+      "chart-dark.svg"). "theme" is ignored when this is true.
+    required: false
+    default: 'false'
+  period:
+    description: >-
+      Time window: 3m, 6m, 1y, 2y, 5y, or all. Takes precedence over "weeks".
+      Effective default when both are empty is 1y (52 weeks).
+    required: false
+    default: ''
+  weeks:
+    description: >-
+      Explicit number of trailing weeks to display. Ignored when "period" is
+      set. Effective default is 52.
+    required: false
+    default: ''
+  columns:
+    description: >-
+      Grid width in blocks: the number of horizontal display buckets. This is
+      a block count, not a pixel measurement (see "width").
+    required: false
+    default: '52'
+  rows:
+    description: >-
+      Tiled/terminal chart height in blocks: the number of vertical levels. This is a block
+      count, not a pixel measurement (see "height").
+    required: false
+    default: '26'
+  width:
+    description: SVG width in pixels.
+    required: false
+    default: '900'
+  height:
+    description: SVG height in pixels, or "auto" to follow the geometry.
+    required: false
+    default: auto
+  show_title:
+    description: Show the repository title in the header.
+    required: false
+    default: 'true'
+  show_total:
+    description: Show the current star count in the header.
+    required: false
+    default: 'true'
+  show_change:
+    description: Show recorded additions for the selected period.
+    required: false
+    default: 'true'
+  show_dates:
+    description: Show sparse date labels along the bottom when show_x_axis is true.
+    required: false
+    default: 'true'
+  show_x_axis:
+    description: Show the horizontal axis. Independent of the y axis and legend.
+    required: false
+    default: 'true'
+  show_y_axis:
+    description: Show numeric star-count ticks, spine and gridlines. Blank enables them except for sparkline; true/false overrides.
+    required: false
+    default: ''
+  show_legend:
+    description: Show the series or shading legend. Blank enables it except for sparkline; true/false overrides.
+    required: false
+    default: ''
+  title:
+    description: Override the header title. Blank derives "owner/repo".
+    required: false
+    default: ''
+  date_format:
+    description: 'Date label format: short, long, or iso.'
+    required: false
+    default: short
+  axis_font_size:
+    description: >-
+      Font size in pixels for date labels, y-axis ticks and the chart legend.
+      Reserved label space scales with it. Raise it
+      when the SVG is displayed smaller than its rendered width.
+    required: false
+    default: '10'
+  cell_size:
+    description: Cell edge for contributions/grid in pixels, or "auto".
+    required: false
+    default: auto
+  cell_gap:
+    description: Gap between contributions/grid cells in pixels, or "auto".
+    required: false
+    default: auto
+  cell_radius:
+    description: Corner radius of contributions/grid cells in pixels, or "auto".
+    required: false
+    default: auto
+  background_mode:
+    description: >-
+      Explicit background handling: "transparent" or "solid". Case-insensitive.
+      Blank (default) infers the mode from "background": transparent/none/empty
+      is transparent, a hex value is solid. "transparent" always renders a
+      transparent background (any supplied colour is ignored with a warning).
+      "solid" requires a valid hex "background".
+    required: false
+    default: ''
+  background:
+    description: >-
+      Background colour (hex) or "transparent". Interpreted according to
+      "background_mode" when that input is set.
+    required: false
+    default: transparent
+  empty_color:
+    description: Override the empty-cell colour (hex).
+    required: false
+    default: ''
+  level_1_color:
+    description: Override the level-1 colour (hex).
+    required: false
+    default: ''
+  level_2_color:
+    description: Override the level-2 colour (hex).
+    required: false
+    default: ''
+  level_3_color:
+    description: Override the level-3 colour (hex).
+    required: false
+    default: ''
+  level_4_color:
+    description: Override the level-4 colour (hex).
+    required: false
+    default: ''
+  font_family:
+    description: CSS font-family list for text.
+    required: false
+    default: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'
+  scale:
+    description: 'Vertical scale: absolute (from zero) or visible (from window baseline).'
+    required: false
+    default: absolute
+  logo:
+    description: Show the small "Star Chart" wordmark.
+    required: false
+    default: 'true'
+  animation:
+    description: 'Animation mode: none, once, or loop.'
+    required: false
+    default: none
+  animation_duration:
+    description: Build duration (e.g. 4s or 500ms).
+    required: false
+    default: 4s
+  animation_pause:
+    description: Pause between loop iterations (loop mode).
+    required: false
+    default: 2s
+  animation_delay:
+    description: Initial delay before the animation starts.
+    required: false
+    default: 0s
+  animation_style:
+    description: 'Animation style: grow, reveal, or cascade.'
+    required: false
+    default: grow
+  animation_direction:
+    description: 'Animation direction: chronological or simultaneous.'
+    required: false
+    default: chronological
+  animation_easing:
+    description: 'Easing: linear, ease-in, ease-out, or ease-in-out.'
+    required: false
+    default: ease-out
+  animate_total:
+    description: Reveal the header total near the end of the build.
+    required: false
+    default: 'false'
+
+outputs:
+  chart_path:
+    description: >-
+      Workspace-relative path of the generated SVG. In dual-theme mode this is
+      the light file.
+  chart_path_light:
+    description: >-
+      Workspace-relative path of the light SVG in dual-theme mode; empty in
+      single-theme mode.
+  chart_path_dark:
+    description: >-
+      Workspace-relative path of the dark SVG in dual-theme mode; empty in
+      single-theme mode.
+  stars:
+    description: >-
+      Current stargazer count reported by the API, summed across all charted
+      repositories.
+  stars_added:
+    description: Recorded additions within the selected window.
+  growth_percentage:
+    description: >-
+      Window additions as a percentage of the pre-window baseline, to two
+      decimals (e.g. "12.50%"). "0.00%" when nothing was added to a zero
+      baseline, and "∞" when stars were added to a zero baseline.
+  peak_gain:
+    description: >-
+      Largest number of stars added in a single selected source week (never a
+      merged display-bucket total).
+  period_start:
+    description: ISO UTC date of the window start.
+  period_end:
+    description: ISO UTC date of the window end.
+  picture_snippet:
+    description: >-
+      Copy-paste <picture> markup pairing the dark source with the light
+      fallback in dual-theme mode; empty in single-theme mode.
+
+runs:
+  using: node24
+  main: dist/index.js
