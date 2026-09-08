@@ -17,9 +17,10 @@ export interface WriteOptions {
 }
 /** One file in a batch write. */
 export interface ChartFile {
-    /** Workspace-relative `.svg` path. */
+    /** Workspace-relative `.svg` or `.gif` path. */
     readonly path: string;
-    readonly content: string;
+    /** UTF-8 text (SVG) or raw bytes (GIF). */
+    readonly content: string | Uint8Array;
 }
 /**
  * Writes `content` to a validated, workspace-relative `.svg` path with
@@ -29,7 +30,7 @@ export interface ChartFile {
  *  - skip the write when bytes are unchanged,
  *  - write an exclusive no-follow temp sibling and atomically rename.
  */
-export declare function writeChartFile(outputPath: string, content: string, options: WriteOptions): Promise<WriteResult>;
+export declare function writeChartFile(outputPath: string, content: string | Uint8Array, options: WriteOptions): Promise<WriteResult>;
 /**
  * Writes several charts as one unit, applying the guarantees of
  * {@link writeChartFile} across the whole batch:

@@ -19,6 +19,7 @@ need a dashboard, third-party image host, or runtime JavaScript.
 - Aggregate several repositories or compare their growth with grouped bars
 - CSS-only animation that respects `prefers-reduced-motion`
 - Standalone SVG output with no scripts or external resources
+- Optional animated **GIF** output for places that don't render inline SVG
 
 It tracks stars without a telescope. The setup is pretty down to earth.
 
@@ -186,7 +187,7 @@ action uses.
 | `token`        | `${{ github.token }}`      | Token for API requests. Empty = unauthenticated public access.                                                                                                                                     |
 | `repository`   | `${{ github.repository }}` | Repository to chart (`owner/repo`).                                                                                                                                                                |
 | `repositories` | _(empty)_                  | Repositories to aggregate, or compare with `clustered-bar`.                                                                                                                                        |
-| `output`       | `assets/star-chart.svg`    | Workspace-relative `.svg` output path.                                                                                                                                                             |
+| `output`       | `assets/star-chart.svg`    | Workspace-relative output path. Use a `.svg` (default) or `.gif` extension — see [GIF output](#gif-output).                                                                                        |
 | `style`        | `contributions`            | One of the fourteen [styles](#styles), including `grid`, `step-line`, `milestone-scatter`, `milestone-area`, `clustered-bar`, `neon-glow`, `neon-glow-stream`, `ascii-terminal`, and `hand-drawn`. |
 | `theme`        | `light`                    | `light`, `dark`, `auto`. Ignored when `dual_theme` is `true`.                                                                                                                                      |
 | `dual_theme`   | `false`                    | Write a fixed light **and** dark file derived from `output`.                                                                                                                                       |
@@ -252,6 +253,40 @@ The single-theme `output` file itself is **not** written. `theme` is ignored in
 dual mode (and warns if you set it), `chart_path` is the light path, and the
 `picture_snippet` output gives you ready-to-paste markup. See
 [Recipes](#recipes) below.
+
+### GIF output
+
+Give `output` a `.gif` extension to render an **animated GIF** instead of an
+SVG. The GIF is produced entirely on the runner (no browser, no network): each
+chart is rendered to a sequence of static SVG frames, rasterised with a bundled
+WebAssembly renderer, and encoded to an animated GIF. This is handy for surfaces
+that strip inline SVG or CSS animation (some feed readers, chat clients, and
+image proxies).
+
+```yaml
+with:
+  style: contributions
+  animation: once
+  output: assets/star-chart.gif
+```
+
+Notes:
+
+- **Any style and theme can be exported, and animation is preserved.** Each
+  animated chart is frozen into a sequence of static SVG frames that reproduce
+  the SVG's own animation technique — the contributions build, a line's
+  stroke-draw, a clip-path reveal/cascade wipe, and bar/area transform-scale
+  growth — then rasterised and encoded frame-by-frame. `once` plays through and
+  holds the finished chart; `loop` samples one seamless build-plus-pause cycle
+  and omits the one-time delay (a GIF cannot delay only the first play). A chart
+  with `animation: none` is exported as a single-frame GIF of the finished
+  chart.
+- `theme: auto` is **not** allowed for a single GIF, because a raster image
+  cannot respond to `prefers-color-scheme`. Use an explicit `light`/`dark`
+  theme, or `dual_theme: true` to emit `*-light.gif` and `*-dark.gif`.
+- GIFs are larger than the equivalent SVG. All example images in this README and
+  on the project site stay SVG on purpose; the repository's root [`lee.gif`](lee.gif)
+  is the reference GIF sample.
 
 ### Time window
 

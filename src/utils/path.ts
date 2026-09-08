@@ -10,14 +10,28 @@ export class PathValidationError extends Error {
 // eslint-disable-next-line no-control-regex
 const CONTROL_CHARS = /[\u0000-\u001F]/;
 
+/** Raster/vector output formats derived from the output file extension. */
+export type OutputFormat = 'svg' | 'gif';
+
+/** Supported output extensions, in lower case, including the leading dot. */
+const ALLOWED_EXTENSIONS = ['.svg', '.gif'] as const;
+
+/**
+ * Returns the {@link OutputFormat} implied by a (already validated) output
+ * path. `.gif` targets are rasterized animations; everything else is SVG.
+ */
+export function outputFormat(value: string): OutputFormat {
+  return value.toLowerCase().endsWith('.gif') ? 'gif' : 'svg';
+}
+
 /**
  * Validates a user-supplied output path and returns a normalized,
  * workspace-relative POSIX-style path.
  *
  * Rejects absolute paths, drive letters, UNC paths, backslashes, control
- * characters, parent traversal, `.git` components, and non-`.svg` targets.
- * This is a pure string check; filesystem-level symlink checks happen at
- * write time.
+ * characters, parent traversal, `.git` components, and any target that is not
+ * a supported image (`.svg` or `.gif`). This is a pure string check;
+ * filesystem-level symlink checks happen at write time.
  */
 export function validateOutputPath(raw: string): string {
   const value = raw.trim();
@@ -44,8 +58,10 @@ export function validateOutputPath(raw: string): string {
   if (value.startsWith('//')) {
     throw new PathValidationError('Output path must not be a UNC path.');
   }
-  if (!value.toLowerCase().endsWith('.svg')) {
-    throw new PathValidationError('Output path must end with ".svg".');
+  if (!ALLOWED_EXTENSIONS.some((ext) => value.toLowerCase().endsWith(ext))) {
+    throw new PathValidationError(
+      'Output path must end with ".svg" or ".gif".',
+    );
   }
 
   const segments = value.split('/').filter((s) => s.length > 0);
@@ -85,7 +101,7 @@ export function deriveDualPaths(raw: string): DualOutputPaths {
   const extensionIndex = normalized.lastIndexOf('.');
   if (extensionIndex <= 0) {
     throw new PathValidationError(
-      'Output path must have a name before the ".svg" extension.',
+      'Output path must have a name before the file extension.',
     );
   }
   const stem = normalized.slice(0, extensionIndex);
@@ -93,7 +109,7 @@ export function deriveDualPaths(raw: string): DualOutputPaths {
   const base = stem.split('/').pop() ?? '';
   if (base.length === 0) {
     throw new PathValidationError(
-      'Output path must have a file name before the ".svg" extension.',
+      'Output path must have a file name before the file extension.',
     );
   }
 

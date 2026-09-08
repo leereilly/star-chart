@@ -21,9 +21,14 @@ export { aggregateDisplayName, aggregateHistories, aggregateMetadata, } from './
 export { renderChart, getRenderer, SIZE_LIMITS } from './renderers/index.js';
 export type { Renderer, RenderOutput } from './renderers/index.js';
 export { contribGeometry, columnHeight, tipClassFromTop, RenderError, } from './renderers/contributions.js';
+export type { ContribFrame } from './renderers/contributions.js';
+export { buildFrameSequence, frameTheme } from './renderers/frames.js';
+export type { ChartFrame, FrameSequence, FrameOptions, } from './renderers/frames.js';
+export { renderChartGif } from './renderers/gif.js';
+export type { GifResult, GifOptions } from './renderers/gif.js';
 export type { RawWeek } from './api/history.js';
-export { deriveDualPaths, validateOutputPath, PathValidationError, } from './utils/path.js';
-export type { DualOutputPaths } from './utils/path.js';
+export { deriveDualPaths, validateOutputPath, outputFormat, PathValidationError, } from './utils/path.js';
+export type { DualOutputPaths, OutputFormat } from './utils/path.js';
 export { utcWeekStart } from './utils/dates.js';
 export { INFINITE_GROWTH, OUTPUT_NAMES, buildOutputs, buildPictureSnippet, chartAltText, formatGrowthPercentage, outputEntries, } from './outputs.js';
 export type { BuildOutputsOptions, PictureSnippetOptions } from './outputs.js';

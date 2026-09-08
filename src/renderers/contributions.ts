@@ -33,6 +33,15 @@ import { renderXAxis, renderYAxis, type AxisFrame } from './conventional.js';
 
 export { RenderError } from './shared.js';
 
+/**
+ * A single frozen animation frame: the number of exposed cells (from the
+ * bottom) for each column at one moment of the build. Consumed by the GIF
+ * pipeline to rasterize the CSS animation into discrete frames.
+ */
+export interface ContribFrame {
+  readonly exposed: readonly number[];
+}
+
 export interface ContribGeometry {
   readonly cols: number;
   readonly rows: number;
@@ -148,7 +157,10 @@ export function tipClassFromTop(kFromTop: number): string {
 }
 
 /** Renders the contributions chart. */
-export function renderContributions(model: ChartModel): string {
+export function renderContributions(
+  model: ChartModel,
+  frame?: ContribFrame,
+): string {
   const geo = contribGeometry(model);
   const id = makeId(model);
   const padX = 16;
@@ -193,7 +205,9 @@ export function renderContributions(model: ChartModel): string {
   const defs = buildDefs(geo, clipId, emptyPatId, l1PatId, gridX, plotTop);
 
   const anim = model.config.animation;
-  const animEnabled = anim.mode !== 'none';
+  // A frozen frame paints a single moment of the build with no CSS animation.
+  const framing = frame !== undefined;
+  const animEnabled = !framing && anim.mode !== 'none';
   const timeline = resolveTimeline(anim);
 
   const columnsSvg: string[] = [];
@@ -203,7 +217,10 @@ export function renderContributions(model: ChartModel): string {
   for (let j = 0; j < geo.cols; j += 1) {
     const h = heights[j] ?? 0;
     const colX = gridX + j * geo.pitch;
-    const finalTy = (geo.rows - h) * geo.pitch;
+    const exposed = framing
+      ? Math.max(0, Math.min(h, frame.exposed[j] ?? 0))
+      : h;
+    const finalTy = (geo.rows - exposed) * geo.pitch;
     const colClass = id(`col${j}`);
     const bucket = model.buckets[j];
     const title = bucket ? columnTitle(model, bucket) : '';
@@ -215,6 +232,7 @@ export function renderContributions(model: ChartModel): string {
       l1PatId,
       colClass,
       finalTy,
+      framing,
     );
     columnsSvg.push(`<g>${title}${stack}</g>`);
 
@@ -258,7 +276,7 @@ export function renderContributions(model: ChartModel): string {
     baseCss(model.config.fontFamily) +
     buildThemeCss(model) +
     animationCss(keyframes, animRules) +
-    totalRevealCss(model);
+    (framing ? '' : totalRevealCss(model));
 
   const min = model.config.scale === 'visible' ? model.baseline : 0;
   const range = model.windowMax - min;
@@ -353,6 +371,7 @@ function buildColumnStack(
   l1PatId: string,
   colClass: string,
   finalTy: number,
+  attrTransform: boolean,
 ): string {
   if (height <= 0) {
     return '';
@@ -376,12 +395,14 @@ function buildColumnStack(
         `fill="url(#${l1PatId})"/>`
       : '';
 
-  return (
-    `<g class="${colClass}" style="transform:translateY(${coord(finalTy)}px)">` +
-    tips.join('') +
-    l1 +
-    `</g>`
-  );
+  // Frozen frames use the SVG `transform` attribute (understood by raster
+  // back-ends such as resvg); the animated document uses the CSS `transform`
+  // property so keyframes can drive it.
+  const placement = attrTransform
+    ? `transform="translate(0 ${coord(finalTy)})"`
+    : `style="transform:translateY(${coord(finalTy)}px)"`;
+
+  return `<g class="${colClass}" ${placement}>` + tips.join('') + l1 + `</g>`;
 }
 
 function columnTitle(model: ChartModel, bucket: Bucket): string {

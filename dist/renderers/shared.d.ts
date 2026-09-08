@@ -59,6 +59,19 @@ export interface Layout {
  */
 export declare function buildThemeCss(model: ChartModel): string;
 export declare function makeId(model: ChartModel): (name: string) => string;
+/**
+ * Resolves the concrete CSS custom-property values for one theme, applying any
+ * palette overrides. Used to flatten `var(--sc-…)` references when rasterizing
+ * to formats (such as GIF) whose renderers do not evaluate CSS variables.
+ */
+export declare function resolveThemeVars(model: ChartModel, theme: 'light' | 'dark'): Record<string, string>;
+/**
+ * Rewrites every `var(--sc-…)` reference in an SVG string to the concrete
+ * colour for `theme`. Raster back-ends (resvg) ignore CSS custom properties,
+ * so a themed frame must resolve them ahead of time. Unknown variables collapse
+ * to `none` so a stray reference never paints an unintended colour.
+ */
+export declare function flattenThemeVars(svg: string, model: ChartModel, theme: 'light' | 'dark'): string;
 export declare function chartTitle(model: ChartModel): string;
 export declare function chartDescription(model: ChartModel): string;
 export declare function hasHeader(model: ChartModel): boolean;

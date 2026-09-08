@@ -1,14 +1,21 @@
 export declare class PathValidationError extends Error {
     constructor(message: string);
 }
+/** Raster/vector output formats derived from the output file extension. */
+export type OutputFormat = 'svg' | 'gif';
+/**
+ * Returns the {@link OutputFormat} implied by a (already validated) output
+ * path. `.gif` targets are rasterized animations; everything else is SVG.
+ */
+export declare function outputFormat(value: string): OutputFormat;
 /**
  * Validates a user-supplied output path and returns a normalized,
  * workspace-relative POSIX-style path.
  *
  * Rejects absolute paths, drive letters, UNC paths, backslashes, control
- * characters, parent traversal, `.git` components, and non-`.svg` targets.
- * This is a pure string check; filesystem-level symlink checks happen at
- * write time.
+ * characters, parent traversal, `.git` components, and any target that is not
+ * a supported image (`.svg` or `.gif`). This is a pure string check;
+ * filesystem-level symlink checks happen at write time.
  */
 export declare function validateOutputPath(raw: string): string;
 /** The pair of theme-specific paths derived from a single `output` value. */

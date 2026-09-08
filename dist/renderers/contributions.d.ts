@@ -1,6 +1,14 @@
 import type { ChartModel } from '../models/index.js';
 import { type ChartModelInput } from '../config/defaults.js';
 export { RenderError } from './shared.js';
+/**
+ * A single frozen animation frame: the number of exposed cells (from the
+ * bottom) for each column at one moment of the build. Consumed by the GIF
+ * pipeline to rasterize the CSS animation into discrete frames.
+ */
+export interface ContribFrame {
+    readonly exposed: readonly number[];
+}
 export interface ContribGeometry {
     readonly cols: number;
     readonly rows: number;
@@ -22,4 +30,4 @@ export declare function columnHeight(input: ChartModelInput, cumulative: number)
 /** Colour class for the k-th cell from the top of a filled column. */
 export declare function tipClassFromTop(kFromTop: number): string;
 /** Renders the contributions chart. */
-export declare function renderContributions(model: ChartModel): string;
+export declare function renderContributions(model: ChartModel, frame?: ContribFrame): string;

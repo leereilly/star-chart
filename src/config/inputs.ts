@@ -9,7 +9,7 @@ import type {
   ScaleMode,
   ThemeName,
 } from '../models/index.js';
-import { validateOutputPath } from '../utils/path.js';
+import { outputFormat, validateOutputPath } from '../utils/path.js';
 import {
   DEFAULT_AXIS_FONT_SIZE,
   DEFAULT_COLUMNS,
@@ -112,6 +112,18 @@ export function parseInputs(
   const style = parseEnum('style', raw.style, STYLES, 'contributions');
   const dualTheme = parseBoolean('dual_theme', raw.dual_theme, false);
   const theme = resolveTheme(raw, dualTheme, warn);
+
+  // A single GIF is a raster image and cannot switch on prefers-color-scheme,
+  // so `theme: auto` has no concrete colours to encode. Dual mode is fine—it
+  // writes a fixed light and a fixed dark GIF.
+  if (outputFormat(output) === 'gif' && theme === 'auto' && !dualTheme) {
+    throw new ConfigError(
+      'A GIF output cannot use theme "auto" (raster images cannot respond ' +
+        'to prefers-color-scheme). Set theme to "light" or "dark", or enable ' +
+        'dual_theme to emit both.',
+    );
+  }
+
   const scale = parseEnum('scale', raw.scale, SCALES, 'absolute');
   const dateFormat = parseEnum(
     'date_format',

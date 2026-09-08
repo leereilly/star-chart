@@ -22,9 +22,10 @@ export interface WriteOptions {
 
 /** One file in a batch write. */
 export interface ChartFile {
-  /** Workspace-relative `.svg` path. */
+  /** Workspace-relative `.svg` or `.gif` path. */
   readonly path: string;
-  readonly content: string;
+  /** UTF-8 text (SVG) or raw bytes (GIF). */
+  readonly content: string | Uint8Array;
 }
 
 /**
@@ -37,7 +38,7 @@ export interface ChartFile {
  */
 export async function writeChartFile(
   outputPath: string,
-  content: string,
+  content: string | Uint8Array,
   options: WriteOptions,
 ): Promise<WriteResult> {
   const [result] = await writeChartFiles(
@@ -258,7 +259,7 @@ function prepare(
     }
   }
 
-  const nextBytes = Buffer.from(file.content, 'utf8');
+  const nextBytes = toBytes(file.content);
   const changed = !existingBytes || !existingBytes.equals(nextBytes);
 
   return {
@@ -306,6 +307,13 @@ async function rollback(
 function containedIn(child: string, parent: string): boolean {
   const rel = path.relative(parent, child);
   return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+}
+
+/** Normalizes file content to a Buffer for byte comparison and writing. */
+function toBytes(content: string | Uint8Array): Buffer {
+  return typeof content === 'string'
+    ? Buffer.from(content, 'utf8')
+    : Buffer.from(content.buffer, content.byteOffset, content.byteLength);
 }
 
 function describeError(error: unknown): string {

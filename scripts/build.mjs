@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { rmSync, mkdirSync, writeFileSync } from 'node:fs';
+import { rmSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -50,6 +50,23 @@ execFileSync(
 const { cpSync } = await import('node:fs');
 cpSync(join(root, 'dist-types'), dist, { recursive: true });
 
+// Copy the raster runtime assets the GIF encoder needs at action runtime.
+// The published action runs the bundled `dist/` with no node_modules, so the
+// resvg WebAssembly binary and the fallback font must live alongside it.
+const { cpSync: cpAsset, appendFileSync } = await import('node:fs');
+cpAsset(
+  join(root, 'node_modules/@resvg/resvg-wasm/index_bg.wasm'),
+  join(dist, 'resvg.wasm'),
+);
+cpAsset(
+  join(root, 'assets/fonts/Roboto-Regular.ttf'),
+  join(dist, 'roboto.ttf'),
+);
+cpAsset(
+  join(root, 'assets/fonts/StarChartSymbols-Regular.ttf'),
+  join(dist, 'symbols.ttf'),
+);
+
 // Third-party license notices for bundled dependencies.
 try {
   const notices = execFileSync('node', [join(root, 'scripts/licenses.mjs')], {
@@ -61,6 +78,38 @@ try {
     join(dist, 'licenses.txt'),
     'See package.json for dependencies.\n',
   );
+}
+
+// Append the bundled font's license so the raster asset is covered too.
+try {
+  const fontLicense = readFileSync(
+    join(root, 'assets/fonts/LICENSE-Roboto.txt'),
+    'utf8',
+  ).trim();
+  appendFileSync(
+    join(dist, 'licenses.txt'),
+    '\n\n' +
+      '======================================================================\n' +
+      'Roboto (bundled as dist/roboto.ttf) (Apache-2.0)\n' +
+      '======================================================================\n' +
+      fontLicense +
+      '\n',
+  );
+  const symbolLicense = readFileSync(
+    join(root, 'assets/fonts/LICENSE-StarChartSymbols.txt'),
+    'utf8',
+  ).trim();
+  appendFileSync(
+    join(dist, 'licenses.txt'),
+    '\n\n' +
+      '======================================================================\n' +
+      'StarChartSymbols (bundled as dist/symbols.ttf) (CC0-1.0)\n' +
+      '======================================================================\n' +
+      symbolLicense +
+      '\n',
+  );
+} catch {
+  // Non-fatal: the font license is best-effort supplementary information.
 }
 
 console.log('Build complete: dist/index.js, dist/lib.js');

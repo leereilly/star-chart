@@ -27,7 +27,11 @@ inputs:
     required: false
     default: ''
   output:
-    description: Workspace-relative path for the generated SVG (must end in .svg).
+    description: >-
+      Workspace-relative path for the generated chart. Use a ".svg" path for a
+      standalone vector chart (default) or a ".gif" path for a rasterised
+      animated GIF. GIF output cannot use "theme: auto" unless "dual_theme" is
+      also enabled, because a raster image cannot respond to prefers-color-scheme.
     required: false
     default: assets/star-chart.svg
   style:
@@ -43,9 +47,10 @@ inputs:
     default: light
   dual_theme:
     description: >-
-      Write two files instead of one: a fixed light and a fixed dark SVG whose
+      Write two files instead of one: a fixed light and a fixed dark file whose
       paths are derived from "output" ("chart.svg" -> "chart-light.svg" and
-      "chart-dark.svg"). "theme" is ignored when this is true.
+      "chart-dark.svg", or "chart.gif" -> "chart-light.gif" and
+      "chart-dark.gif"). "theme" is ignored when this is true.
     required: false
     default: 'false'
   period:

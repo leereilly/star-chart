@@ -1070,14 +1070,14 @@ var require_util = __commonJS({
         }
         const port = url.port != null ? url.port : url.protocol === "https:" ? 443 : 80;
         let origin = url.origin != null ? url.origin : `${url.protocol || ""}//${url.hostname || ""}:${port}`;
-        let path4 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
+        let path5 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
         if (origin[origin.length - 1] === "/") {
           origin = origin.slice(0, origin.length - 1);
         }
-        if (path4 && path4[0] !== "/") {
-          path4 = `/${path4}`;
+        if (path5 && path5[0] !== "/") {
+          path5 = `/${path5}`;
         }
-        return new URL(`${origin}${path4}`);
+        return new URL(`${origin}${path5}`);
       }
       if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
         throw new InvalidArgumentError("Invalid URL protocol: the URL must start with `http:` or `https:`.");
@@ -1528,39 +1528,39 @@ var require_diagnostics = __commonJS({
       });
       diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
         const {
-          request: { method, path: path4, origin }
+          request: { method, path: path5, origin }
         } = evt;
-        debuglog("sending request to %s %s/%s", method, origin, path4);
+        debuglog("sending request to %s %s/%s", method, origin, path5);
       });
       diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
         const {
-          request: { method, path: path4, origin },
+          request: { method, path: path5, origin },
           response: { statusCode }
         } = evt;
         debuglog(
           "received response to %s %s/%s - HTTP %d",
           method,
           origin,
-          path4,
+          path5,
           statusCode
         );
       });
       diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
         const {
-          request: { method, path: path4, origin }
+          request: { method, path: path5, origin }
         } = evt;
-        debuglog("trailers received from %s %s/%s", method, origin, path4);
+        debuglog("trailers received from %s %s/%s", method, origin, path5);
       });
       diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
         const {
-          request: { method, path: path4, origin },
+          request: { method, path: path5, origin },
           error: error2
         } = evt;
         debuglog(
           "request to %s %s/%s errored - %s",
           method,
           origin,
-          path4,
+          path5,
           error2.message
         );
       });
@@ -1609,9 +1609,9 @@ var require_diagnostics = __commonJS({
         });
         diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
           const {
-            request: { method, path: path4, origin }
+            request: { method, path: path5, origin }
           } = evt;
-          debuglog("sending request to %s %s/%s", method, origin, path4);
+          debuglog("sending request to %s %s/%s", method, origin, path5);
         });
       }
       diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
@@ -1672,9 +1672,9 @@ var require_request = __commonJS({
     var { headerNameLowerCasedRecord } = require_constants();
     var invalidPathRegex = /[^\u0021-\u00ff]/;
     var kHandler = Symbol("handler");
-    var Request = class {
+    var Request2 = class {
       constructor(origin, {
-        path: path4,
+        path: path5,
         method,
         body,
         headers,
@@ -1689,11 +1689,11 @@ var require_request = __commonJS({
         expectContinue,
         servername
       }, handler2) {
-        if (typeof path4 !== "string") {
+        if (typeof path5 !== "string") {
           throw new InvalidArgumentError("path must be a string");
-        } else if (path4[0] !== "/" && !(path4.startsWith("http://") || path4.startsWith("https://")) && method !== "CONNECT") {
+        } else if (path5[0] !== "/" && !(path5.startsWith("http://") || path5.startsWith("https://")) && method !== "CONNECT") {
           throw new InvalidArgumentError("path must be an absolute URL or start with a slash");
-        } else if (invalidPathRegex.test(path4)) {
+        } else if (invalidPathRegex.test(path5)) {
           throw new InvalidArgumentError("invalid request path");
         }
         if (typeof method !== "string") {
@@ -1759,7 +1759,7 @@ var require_request = __commonJS({
         this.completed = false;
         this.aborted = false;
         this.upgrade = upgrade || null;
-        this.path = query ? buildURL(path4, query) : path4;
+        this.path = query ? buildURL(path5, query) : path5;
         this.origin = origin;
         this.idempotent = idempotent == null ? method === "HEAD" || method === "GET" : idempotent;
         this.blocking = blocking == null ? false : blocking;
@@ -1981,7 +1981,7 @@ var require_request = __commonJS({
         request2.headers.push(key, val);
       }
     }
-    module.exports = Request;
+    module.exports = Request2;
   }
 });
 
@@ -2092,9 +2092,9 @@ var require_dispatcher_base = __commonJS({
       }
       close(callback) {
         if (callback === void 0) {
-          return new Promise((resolve2, reject) => {
+          return new Promise((resolve3, reject) => {
             this.close((err, data) => {
-              return err ? reject(err) : resolve2(data);
+              return err ? reject(err) : resolve3(data);
             });
           });
         }
@@ -2132,12 +2132,12 @@ var require_dispatcher_base = __commonJS({
           err = null;
         }
         if (callback === void 0) {
-          return new Promise((resolve2, reject) => {
+          return new Promise((resolve3, reject) => {
             this.destroy(err, (err2, data) => {
               return err2 ? (
                 /* istanbul ignore next: should never error */
                 reject(err2)
-              ) : resolve2(data);
+              ) : resolve3(data);
             });
           });
         }
@@ -4404,8 +4404,8 @@ var require_util2 = __commonJS({
     function createDeferredPromise() {
       let res;
       let rej;
-      const promise = new Promise((resolve2, reject) => {
-        res = resolve2;
+      const promise = new Promise((resolve3, reject) => {
+        res = resolve3;
         rej = reject;
       });
       return { promise, resolve: res, reject: rej };
@@ -6389,7 +6389,7 @@ var require_client_h1 = __commonJS({
       return method !== "GET" && method !== "HEAD" && method !== "OPTIONS" && method !== "TRACE" && method !== "CONNECT";
     }
     function writeH1(client, request2) {
-      const { method, path: path4, host, upgrade, blocking, reset } = request2;
+      const { method, path: path5, host, upgrade, blocking, reset } = request2;
       let { body, headers, contentLength } = request2;
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH" || method === "QUERY" || method === "PROPFIND" || method === "PROPPATCH";
       if (util.isFormDataLike(body)) {
@@ -6464,7 +6464,7 @@ var require_client_h1 = __commonJS({
       if (blocking) {
         socket[kBlocking] = true;
       }
-      let header = `${method} ${path4} HTTP/1.1\r
+      let header = `${method} ${path5} HTTP/1.1\r
 `;
       if (typeof host === "string") {
         header += `host: ${host}\r
@@ -6651,12 +6651,12 @@ upgrade: ${upgrade}\r
           cb();
         }
       }
-      const waitForDrain = () => new Promise((resolve2, reject) => {
+      const waitForDrain = () => new Promise((resolve3, reject) => {
         assert(callback === null);
         if (socket[kError]) {
           reject(socket[kError]);
         } else {
-          callback = resolve2;
+          callback = resolve3;
         }
       });
       socket.on("close", onDrain).on("drain", onDrain);
@@ -6990,7 +6990,7 @@ var require_client_h2 = __commonJS({
     }
     function writeH2(client, request2) {
       const session = client[kHTTP2Session];
-      const { method, path: path4, host, upgrade, expectContinue, signal, headers: reqHeaders } = request2;
+      const { method, path: path5, host, upgrade, expectContinue, signal, headers: reqHeaders } = request2;
       let { body } = request2;
       if (upgrade) {
         util.errorRequest(client, request2, new Error("Upgrade not supported for H2"));
@@ -7057,7 +7057,7 @@ var require_client_h2 = __commonJS({
         });
         return true;
       }
-      headers[HTTP2_HEADER_PATH] = path4;
+      headers[HTTP2_HEADER_PATH] = path5;
       headers[HTTP2_HEADER_SCHEME] = "https";
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH";
       if (body && typeof body.read === "function") {
@@ -7293,12 +7293,12 @@ var require_client_h2 = __commonJS({
           cb();
         }
       }
-      const waitForDrain = () => new Promise((resolve2, reject) => {
+      const waitForDrain = () => new Promise((resolve3, reject) => {
         assert(callback === null);
         if (socket[kError]) {
           reject(socket[kError]);
         } else {
-          callback = resolve2;
+          callback = resolve3;
         }
       });
       h2stream.on("close", onDrain).on("drain", onDrain);
@@ -7410,9 +7410,9 @@ var require_redirect_handler = __commonJS({
           return this.handler.onHeaders(statusCode, headers, resume, statusText);
         }
         const { origin, pathname, search } = util.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
-        const path4 = search ? `${pathname}${search}` : pathname;
+        const path5 = search ? `${pathname}${search}` : pathname;
         this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
-        this.opts.path = path4;
+        this.opts.path = path5;
         this.opts.origin = origin;
         this.opts.maxRedirections = 0;
         this.opts.query = null;
@@ -7519,7 +7519,7 @@ var require_client = __commonJS({
     var http = __require("node:http");
     var util = require_util();
     var { channels } = require_diagnostics();
-    var Request = require_request();
+    var Request2 = require_request();
     var DispatcherBase = require_dispatcher_base();
     var {
       InvalidArgumentError,
@@ -7761,7 +7761,7 @@ var require_client = __commonJS({
       }
       [kDispatch](opts, handler2) {
         const origin = opts.origin || this[kUrl].origin;
-        const request2 = new Request(origin, opts, handler2);
+        const request2 = new Request2(origin, opts, handler2);
         this[kQueue].push(request2);
         if (this[kResuming]) {
         } else if (util.bodyLength(request2.body) == null && util.isIterable(request2.body)) {
@@ -7776,16 +7776,16 @@ var require_client = __commonJS({
         return this[kNeedDrain] < 2;
       }
       async [kClose]() {
-        return new Promise((resolve2) => {
+        return new Promise((resolve3) => {
           if (this[kSize]) {
-            this[kClosedResolve] = resolve2;
+            this[kClosedResolve] = resolve3;
           } else {
-            resolve2(null);
+            resolve3(null);
           }
         });
       }
       async [kDestroy](err) {
-        return new Promise((resolve2) => {
+        return new Promise((resolve3) => {
           const requests = this[kQueue].splice(this[kPendingIdx]);
           for (let i = 0; i < requests.length; i++) {
             const request2 = requests[i];
@@ -7796,7 +7796,7 @@ var require_client = __commonJS({
               this[kClosedResolve]();
               this[kClosedResolve] = null;
             }
-            resolve2(null);
+            resolve3(null);
           };
           if (this[kHTTPContext]) {
             this[kHTTPContext].destroy(err, callback);
@@ -7847,7 +7847,7 @@ var require_client = __commonJS({
         });
       }
       try {
-        const socket = await new Promise((resolve2, reject) => {
+        const socket = await new Promise((resolve3, reject) => {
           client[kConnector]({
             host,
             hostname,
@@ -7859,7 +7859,7 @@ var require_client = __commonJS({
             if (err) {
               reject(err);
             } else {
-              resolve2(socket2);
+              resolve3(socket2);
             }
           });
         });
@@ -8195,8 +8195,8 @@ var require_pool_base = __commonJS({
         if (this[kQueue].isEmpty()) {
           await Promise.all(this[kClients].map((c) => c.close()));
         } else {
-          await new Promise((resolve2) => {
-            this[kClosedResolve] = resolve2;
+          await new Promise((resolve3) => {
+            this[kClosedResolve] = resolve3;
           });
         }
       }
@@ -8647,10 +8647,10 @@ var require_proxy_agent = __commonJS({
         };
         const {
           origin,
-          path: path4 = "/",
+          path: path5 = "/",
           headers = {}
         } = opts;
-        opts.path = origin + path4;
+        opts.path = origin + path5;
         if (!("host" in headers) && !("Host" in headers)) {
           const { host } = new URL2(origin);
           headers.host = host;
@@ -9439,7 +9439,7 @@ var require_readable = __commonJS({
         if (this._readableState.closeEmitted) {
           return null;
         }
-        return await new Promise((resolve2, reject) => {
+        return await new Promise((resolve3, reject) => {
           if (this[kContentLength] > limit) {
             this.destroy(new AbortError());
           }
@@ -9452,7 +9452,7 @@ var require_readable = __commonJS({
             if (signal?.aborted) {
               reject(signal.reason ?? new AbortError());
             } else {
-              resolve2(null);
+              resolve3(null);
             }
           }).on("error", noop3).on("data", function(chunk) {
             limit -= chunk.length;
@@ -9471,7 +9471,7 @@ var require_readable = __commonJS({
     }
     async function consume(stream, type) {
       assert(!stream[kConsume]);
-      return new Promise((resolve2, reject) => {
+      return new Promise((resolve3, reject) => {
         if (isUnusable(stream)) {
           const rState = stream._readableState;
           if (rState.destroyed && rState.closeEmitted === false) {
@@ -9488,7 +9488,7 @@ var require_readable = __commonJS({
             stream[kConsume] = {
               type,
               stream,
-              resolve: resolve2,
+              resolve: resolve3,
               reject,
               length: 0,
               body: []
@@ -9558,18 +9558,18 @@ var require_readable = __commonJS({
       return buffer;
     }
     function consumeEnd(consume2) {
-      const { type, body, resolve: resolve2, stream, length } = consume2;
+      const { type, body, resolve: resolve3, stream, length } = consume2;
       try {
         if (type === "text") {
-          resolve2(chunksDecode(body, length));
+          resolve3(chunksDecode(body, length));
         } else if (type === "json") {
-          resolve2(JSON.parse(chunksDecode(body, length)));
+          resolve3(JSON.parse(chunksDecode(body, length)));
         } else if (type === "arrayBuffer") {
-          resolve2(chunksConcat(body, length).buffer);
+          resolve3(chunksConcat(body, length).buffer);
         } else if (type === "blob") {
-          resolve2(new Blob(body, { type: stream[kContentType] }));
+          resolve3(new Blob(body, { type: stream[kContentType] }));
         } else if (type === "bytes") {
-          resolve2(chunksConcat(body, length));
+          resolve3(chunksConcat(body, length));
         }
         consumeFinish(consume2);
       } catch (err) {
@@ -9826,9 +9826,9 @@ var require_api_request = __commonJS({
     };
     function request2(opts, callback) {
       if (callback === void 0) {
-        return new Promise((resolve2, reject) => {
+        return new Promise((resolve3, reject) => {
           request2.call(this, opts, (err, data) => {
-            return err ? reject(err) : resolve2(data);
+            return err ? reject(err) : resolve3(data);
           });
         });
       }
@@ -10051,9 +10051,9 @@ var require_api_stream = __commonJS({
     };
     function stream(opts, factory, callback) {
       if (callback === void 0) {
-        return new Promise((resolve2, reject) => {
+        return new Promise((resolve3, reject) => {
           stream.call(this, opts, factory, (err, data) => {
-            return err ? reject(err) : resolve2(data);
+            return err ? reject(err) : resolve3(data);
           });
         });
       }
@@ -10338,9 +10338,9 @@ var require_api_upgrade = __commonJS({
     };
     function upgrade(opts, callback) {
       if (callback === void 0) {
-        return new Promise((resolve2, reject) => {
+        return new Promise((resolve3, reject) => {
           upgrade.call(this, opts, (err, data) => {
-            return err ? reject(err) : resolve2(data);
+            return err ? reject(err) : resolve3(data);
           });
         });
       }
@@ -10432,9 +10432,9 @@ var require_api_connect = __commonJS({
     };
     function connect(opts, callback) {
       if (callback === void 0) {
-        return new Promise((resolve2, reject) => {
+        return new Promise((resolve3, reject) => {
           connect.call(this, opts, (err, data) => {
-            return err ? reject(err) : resolve2(data);
+            return err ? reject(err) : resolve3(data);
           });
         });
       }
@@ -10599,20 +10599,20 @@ var require_mock_utils = __commonJS({
       }
       return true;
     }
-    function safeUrl(path4) {
-      if (typeof path4 !== "string") {
-        return path4;
+    function safeUrl(path5) {
+      if (typeof path5 !== "string") {
+        return path5;
       }
-      const pathSegments = path4.split("?");
+      const pathSegments = path5.split("?");
       if (pathSegments.length !== 2) {
-        return path4;
+        return path5;
       }
       const qp = new URLSearchParams(pathSegments.pop());
       qp.sort();
       return [...pathSegments, qp.toString()].join("?");
     }
-    function matchKey(mockDispatch2, { path: path4, method, body, headers }) {
-      const pathMatch = matchValue(mockDispatch2.path, path4);
+    function matchKey(mockDispatch2, { path: path5, method, body, headers }) {
+      const pathMatch = matchValue(mockDispatch2.path, path5);
       const methodMatch = matchValue(mockDispatch2.method, method);
       const bodyMatch = typeof mockDispatch2.body !== "undefined" ? matchValue(mockDispatch2.body, body) : true;
       const headersMatch = matchHeaders(mockDispatch2, headers);
@@ -10634,7 +10634,7 @@ var require_mock_utils = __commonJS({
     function getMockDispatch(mockDispatches, key) {
       const basePath = key.query ? buildURL(key.path, key.query) : key.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
-      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path4 }) => matchValue(safeUrl(path4), resolvedPath));
+      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path5 }) => matchValue(safeUrl(path5), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
@@ -10672,9 +10672,9 @@ var require_mock_utils = __commonJS({
       }
     }
     function buildKey(opts) {
-      const { path: path4, method, body, headers, query } = opts;
+      const { path: path5, method, body, headers, query } = opts;
       return {
-        path: path4,
+        path: path5,
         method,
         body,
         headers,
@@ -11137,10 +11137,10 @@ var require_pending_interceptors_formatter = __commonJS({
       }
       format(pendingInterceptors) {
         const withPrettyHeaders = pendingInterceptors.map(
-          ({ method, path: path4, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+          ({ method, path: path5, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
             Method: method,
             Origin: origin,
-            Path: path4,
+            Path: path5,
             "Status code": statusCode,
             Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
             Invocations: timesInvoked,
@@ -12267,7 +12267,7 @@ var require_response = __commonJS({
     var assert = __require("node:assert");
     var { types } = __require("node:util");
     var textEncoder = new TextEncoder("utf-8");
-    var Response = class _Response {
+    var Response2 = class _Response {
       // Creates network error Response.
       static error() {
         const responseObject = fromInnerResponse(makeNetworkError(), "immutable");
@@ -12410,8 +12410,8 @@ var require_response = __commonJS({
         return `Response ${nodeUtil.formatWithOptions(options, properties)}`;
       }
     };
-    mixinBody(Response);
-    Object.defineProperties(Response.prototype, {
+    mixinBody(Response2);
+    Object.defineProperties(Response2.prototype, {
       type: kEnumerableProperty,
       url: kEnumerableProperty,
       status: kEnumerableProperty,
@@ -12427,7 +12427,7 @@ var require_response = __commonJS({
         configurable: true
       }
     });
-    Object.defineProperties(Response, {
+    Object.defineProperties(Response2, {
       json: kEnumerableProperty,
       redirect: kEnumerableProperty,
       error: kEnumerableProperty
@@ -12560,7 +12560,7 @@ var require_response = __commonJS({
       }
     }
     function fromInnerResponse(innerResponse, guard) {
-      const response = new Response(kConstruct);
+      const response = new Response2(kConstruct);
       response[kState] = innerResponse;
       response[kHeaders] = new Headers2(kConstruct);
       setHeadersList(response[kHeaders], innerResponse.headersList);
@@ -12628,7 +12628,7 @@ var require_response = __commonJS({
       makeResponse,
       makeAppropriateNetworkError,
       filterResponse,
-      Response,
+      Response: Response2,
       cloneResponse,
       fromInnerResponse
     };
@@ -12738,7 +12738,7 @@ var require_request2 = __commonJS({
       }
     }
     var patchMethodWarning = false;
-    var Request = class _Request {
+    var Request2 = class _Request {
       // https://fetch.spec.whatwg.org/#dom-request
       constructor(input, init = {}) {
         webidl.util.markAsUncloneable(this);
@@ -13185,7 +13185,7 @@ var require_request2 = __commonJS({
         return `Request ${nodeUtil.formatWithOptions(options, properties)}`;
       }
     };
-    mixinBody(Request);
+    mixinBody(Request2);
     function makeRequest(init) {
       return {
         method: init.method ?? "GET",
@@ -13236,7 +13236,7 @@ var require_request2 = __commonJS({
       return newRequest;
     }
     function fromInnerRequest(innerRequest, signal, guard) {
-      const request2 = new Request(kConstruct);
+      const request2 = new Request2(kConstruct);
       request2[kState] = innerRequest;
       request2[kSignal] = signal;
       request2[kHeaders] = new Headers2(kConstruct);
@@ -13244,7 +13244,7 @@ var require_request2 = __commonJS({
       setHeadersGuard(request2[kHeaders], guard);
       return request2;
     }
-    Object.defineProperties(Request.prototype, {
+    Object.defineProperties(Request2.prototype, {
       method: kEnumerableProperty,
       url: kEnumerableProperty,
       headers: kEnumerableProperty,
@@ -13271,13 +13271,13 @@ var require_request2 = __commonJS({
       }
     });
     webidl.converters.Request = webidl.interfaceConverter(
-      Request
+      Request2
     );
     webidl.converters.RequestInfo = function(V, prefix, argument) {
       if (typeof V === "string") {
         return webidl.converters.USVString(V, prefix, argument);
       }
-      if (V instanceof Request) {
+      if (V instanceof Request2) {
         return webidl.converters.Request(V, prefix, argument);
       }
       return webidl.converters.USVString(V, prefix, argument);
@@ -13368,7 +13368,7 @@ var require_request2 = __commonJS({
         converter: webidl.converters.any
       }
     ]);
-    module.exports = { Request, makeRequest, fromInnerRequest, cloneRequest };
+    module.exports = { Request: Request2, makeRequest, fromInnerRequest, cloneRequest };
   }
 });
 
@@ -13384,7 +13384,7 @@ var require_fetch = __commonJS({
       fromInnerResponse
     } = require_response();
     var { HeadersList } = require_headers();
-    var { Request, cloneRequest } = require_request2();
+    var { Request: Request2, cloneRequest } = require_request2();
     var zlib = __require("node:zlib");
     var {
       bytesMatch,
@@ -13474,12 +13474,12 @@ var require_fetch = __commonJS({
     function handleFetchDone(response) {
       finalizeAndReportTiming(response, "fetch");
     }
-    function fetch2(input, init = void 0) {
+    function fetch3(input, init = void 0) {
       webidl.argumentLengthCheck(arguments, 1, "globalThis.fetch");
       let p = createDeferredPromise();
       let requestObject;
       try {
-        requestObject = new Request(input, init);
+        requestObject = new Request2(input, init);
       } catch (e) {
         p.reject(e);
         return p.promise;
@@ -14296,7 +14296,7 @@ var require_fetch = __commonJS({
       function dispatch({ body }) {
         const url = requestCurrentURL(request2);
         const agent = fetchParams.controller.dispatcher;
-        return new Promise((resolve2, reject) => agent.dispatch(
+        return new Promise((resolve3, reject) => agent.dispatch(
           {
             path: url.pathname + url.search,
             origin: url.origin,
@@ -14372,7 +14372,7 @@ var require_fetch = __commonJS({
                 }
               }
               const onError = this.onError.bind(this);
-              resolve2({
+              resolve3({
                 status,
                 statusText,
                 headersList,
@@ -14418,7 +14418,7 @@ var require_fetch = __commonJS({
               for (let i = 0; i < rawHeaders.length; i += 2) {
                 headersList.append(bufferToLowerCasedHeaderName(rawHeaders[i]), rawHeaders[i + 1].toString("latin1"), true);
               }
-              resolve2({
+              resolve3({
                 status,
                 statusText: STATUS_CODES[status],
                 headersList,
@@ -14431,7 +14431,7 @@ var require_fetch = __commonJS({
       }
     }
     module.exports = {
-      fetch: fetch2,
+      fetch: fetch3,
       Fetch,
       fetching,
       finalizeAndReportTiming
@@ -15300,8 +15300,8 @@ var require_cache = __commonJS({
     var { urlEquals, getFieldValues } = require_util5();
     var { kEnumerableProperty, isDisturbed } = require_util();
     var { webidl } = require_webidl();
-    var { Response, cloneResponse, fromInnerResponse } = require_response();
-    var { Request, fromInnerRequest } = require_request2();
+    var { Response: Response2, cloneResponse, fromInnerResponse } = require_response();
+    var { Request: Request2, fromInnerRequest } = require_request2();
     var { kState } = require_symbols2();
     var { fetching } = require_fetch();
     var { urlIsHttpHttpsScheme, createDeferredPromise, readAllBytes } = require_util2();
@@ -15375,7 +15375,7 @@ var require_cache = __commonJS({
         }
         const fetchControllers = [];
         for (const request2 of requests) {
-          const r = new Request(request2)[kState];
+          const r = new Request2(request2)[kState];
           if (!urlIsHttpHttpsScheme(r.url)) {
             throw webidl.errors.exception({
               header: prefix,
@@ -15459,10 +15459,10 @@ var require_cache = __commonJS({
         request2 = webidl.converters.RequestInfo(request2, prefix, "request");
         response = webidl.converters.Response(response, prefix, "response");
         let innerRequest = null;
-        if (request2 instanceof Request) {
+        if (request2 instanceof Request2) {
           innerRequest = request2[kState];
         } else {
-          innerRequest = new Request(request2)[kState];
+          innerRequest = new Request2(request2)[kState];
         }
         if (!urlIsHttpHttpsScheme(innerRequest.url) || innerRequest.method !== "GET") {
           throw webidl.errors.exception({
@@ -15540,14 +15540,14 @@ var require_cache = __commonJS({
         request2 = webidl.converters.RequestInfo(request2, prefix, "request");
         options = webidl.converters.CacheQueryOptions(options, prefix, "options");
         let r = null;
-        if (request2 instanceof Request) {
+        if (request2 instanceof Request2) {
           r = request2[kState];
           if (r.method !== "GET" && !options.ignoreMethod) {
             return false;
           }
         } else {
           assert(typeof request2 === "string");
-          r = new Request(request2)[kState];
+          r = new Request2(request2)[kState];
         }
         const operations = [];
         const operation = {
@@ -15586,13 +15586,13 @@ var require_cache = __commonJS({
         options = webidl.converters.CacheQueryOptions(options, prefix, "options");
         let r = null;
         if (request2 !== void 0) {
-          if (request2 instanceof Request) {
+          if (request2 instanceof Request2) {
             r = request2[kState];
             if (r.method !== "GET" && !options.ignoreMethod) {
               return [];
             }
           } else if (typeof request2 === "string") {
-            r = new Request(request2)[kState];
+            r = new Request2(request2)[kState];
           }
         }
         const promise = createDeferredPromise();
@@ -15758,13 +15758,13 @@ var require_cache = __commonJS({
       #internalMatchAll(request2, options, maxResponses = Infinity) {
         let r = null;
         if (request2 !== void 0) {
-          if (request2 instanceof Request) {
+          if (request2 instanceof Request2) {
             r = request2[kState];
             if (r.method !== "GET" && !options.ignoreMethod) {
               return [];
             }
           } else if (typeof request2 === "string") {
-            r = new Request(request2)[kState];
+            r = new Request2(request2)[kState];
           }
         }
         const responses = [];
@@ -15827,7 +15827,7 @@ var require_cache = __commonJS({
         converter: webidl.converters.DOMString
       }
     ]);
-    webidl.converters.Response = webidl.interfaceConverter(Response);
+    webidl.converters.Response = webidl.interfaceConverter(Response2);
     webidl.converters["sequence<RequestInfo>"] = webidl.sequenceConverter(
       webidl.converters.RequestInfo
     );
@@ -16021,9 +16021,9 @@ var require_util6 = __commonJS({
         }
       }
     }
-    function validateCookiePath(path4) {
-      for (let i = 0; i < path4.length; ++i) {
-        const code = path4.charCodeAt(i);
+    function validateCookiePath(path5) {
+      for (let i = 0; i < path5.length; ++i) {
+        const code = path5.charCodeAt(i);
         if (code < 32 || // exclude CTLs (0-31)
         code > 126 || // exclude DEL and non-ascii
         code === 59) {
@@ -18148,8 +18148,8 @@ var require_util8 = __commonJS({
       return true;
     }
     function delay(ms) {
-      return new Promise((resolve2) => {
-        setTimeout(resolve2, ms).unref();
+      return new Promise((resolve3) => {
+        setTimeout(resolve3, ms).unref();
       });
     }
     module.exports = {
@@ -18754,11 +18754,11 @@ var require_undici = __commonJS({
           if (typeof opts.path !== "string") {
             throw new InvalidArgumentError("invalid opts.path");
           }
-          let path4 = opts.path;
+          let path5 = opts.path;
           if (!opts.path.startsWith("/")) {
-            path4 = `/${path4}`;
+            path5 = `/${path5}`;
           }
-          url = new URL(util.parseOrigin(url).origin + path4);
+          url = new URL(util.parseOrigin(url).origin + path5);
         } else {
           if (!opts) {
             opts = typeof url === "object" ? url : {};
@@ -18780,7 +18780,7 @@ var require_undici = __commonJS({
     module.exports.setGlobalDispatcher = setGlobalDispatcher;
     module.exports.getGlobalDispatcher = getGlobalDispatcher;
     var fetchImpl = require_fetch().fetch;
-    module.exports.fetch = async function fetch2(init, options = void 0) {
+    module.exports.fetch = async function fetch3(init, options = void 0) {
       try {
         return await fetchImpl(init, options);
       } catch (err) {
@@ -18953,11 +18953,11 @@ var require_lib = __commonJS({
     })();
     var __awaiter3 = exports && exports.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve2) {
-          resolve2(value);
+        return value instanceof P ? value : new P(function(resolve3) {
+          resolve3(value);
         });
       }
-      return new (P || (P = Promise))(function(resolve2, reject) {
+      return new (P || (P = Promise))(function(resolve3, reject) {
         function fulfilled(value) {
           try {
             step(generator.next(value));
@@ -18973,7 +18973,7 @@ var require_lib = __commonJS({
           }
         }
         function step(result) {
-          result.done ? resolve2(result.value) : adopt(result.value).then(fulfilled, rejected);
+          result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
         }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
       });
@@ -19060,26 +19060,26 @@ var require_lib = __commonJS({
       }
       readBody() {
         return __awaiter3(this, void 0, void 0, function* () {
-          return new Promise((resolve2) => __awaiter3(this, void 0, void 0, function* () {
+          return new Promise((resolve3) => __awaiter3(this, void 0, void 0, function* () {
             let output = Buffer.alloc(0);
             this.message.on("data", (chunk) => {
               output = Buffer.concat([output, chunk]);
             });
             this.message.on("end", () => {
-              resolve2(output.toString());
+              resolve3(output.toString());
             });
           }));
         });
       }
       readBodyBuffer() {
         return __awaiter3(this, void 0, void 0, function* () {
-          return new Promise((resolve2) => __awaiter3(this, void 0, void 0, function* () {
+          return new Promise((resolve3) => __awaiter3(this, void 0, void 0, function* () {
             const chunks = [];
             this.message.on("data", (chunk) => {
               chunks.push(chunk);
             });
             this.message.on("end", () => {
-              resolve2(Buffer.concat(chunks));
+              resolve3(Buffer.concat(chunks));
             });
           }));
         });
@@ -19287,14 +19287,14 @@ var require_lib = __commonJS({
        */
       requestRaw(info2, data) {
         return __awaiter3(this, void 0, void 0, function* () {
-          return new Promise((resolve2, reject) => {
+          return new Promise((resolve3, reject) => {
             function callbackForResult(err, res) {
               if (err) {
                 reject(err);
               } else if (!res) {
                 reject(new Error("Unknown error"));
               } else {
-                resolve2(res);
+                resolve3(res);
               }
             }
             this.requestRawWithCallback(info2, data, callbackForResult);
@@ -19538,12 +19538,12 @@ var require_lib = __commonJS({
         return __awaiter3(this, void 0, void 0, function* () {
           retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
           const ms = ExponentialBackoffTimeSlice * Math.pow(2, retryNumber);
-          return new Promise((resolve2) => setTimeout(() => resolve2(), ms));
+          return new Promise((resolve3) => setTimeout(() => resolve3(), ms));
         });
       }
       _processResponse(res, options) {
         return __awaiter3(this, void 0, void 0, function* () {
-          return new Promise((resolve2, reject) => __awaiter3(this, void 0, void 0, function* () {
+          return new Promise((resolve3, reject) => __awaiter3(this, void 0, void 0, function* () {
             const statusCode = res.message.statusCode || 0;
             const response = {
               statusCode,
@@ -19551,7 +19551,7 @@ var require_lib = __commonJS({
               headers: {}
             };
             if (statusCode === HttpCodes2.NotFound) {
-              resolve2(response);
+              resolve3(response);
             }
             function dateTimeDeserializer(key, value) {
               if (typeof value === "string") {
@@ -19590,7 +19590,7 @@ var require_lib = __commonJS({
               err.result = response.result;
               reject(err);
             } else {
-              resolve2(response);
+              resolve3(response);
             }
           }));
         });
@@ -19598,6 +19598,818 @@ var require_lib = __commonJS({
     };
     exports.HttpClient = HttpClient3;
     var lowercaseKeys2 = (obj) => Object.keys(obj).reduce((c, k) => (c[k.toLowerCase()] = obj[k], c), {});
+  }
+});
+
+// node_modules/gifenc/dist/gifenc.js
+var require_gifenc = __commonJS({
+  "node_modules/gifenc/dist/gifenc.js"(exports) {
+    var __defProp2 = Object.defineProperty;
+    var __markAsModule = (target) => __defProp2(target, "__esModule", { value: true });
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp2(target, name, { get: all[name], enumerable: true });
+    };
+    __markAsModule(exports);
+    __export(exports, {
+      GIFEncoder: () => GIFEncoder2,
+      applyPalette: () => applyPalette2,
+      default: () => src_default,
+      nearestColor: () => nearestColor,
+      nearestColorIndex: () => nearestColorIndex,
+      nearestColorIndexWithDistance: () => nearestColorIndexWithDistance,
+      prequantize: () => prequantize,
+      quantize: () => quantize2,
+      snapColorsToPalette: () => snapColorsToPalette
+    });
+    var constants_default = {
+      signature: "GIF",
+      version: "89a",
+      trailer: 59,
+      extensionIntroducer: 33,
+      applicationExtensionLabel: 255,
+      graphicControlExtensionLabel: 249,
+      imageSeparator: 44,
+      signatureSize: 3,
+      versionSize: 3,
+      globalColorTableFlagMask: 128,
+      colorResolutionMask: 112,
+      sortFlagMask: 8,
+      globalColorTableSizeMask: 7,
+      applicationIdentifierSize: 8,
+      applicationAuthCodeSize: 3,
+      disposalMethodMask: 28,
+      userInputFlagMask: 2,
+      transparentColorFlagMask: 1,
+      localColorTableFlagMask: 128,
+      interlaceFlagMask: 64,
+      idSortFlagMask: 32,
+      localColorTableSizeMask: 7
+    };
+    function createStream(initialCapacity = 256) {
+      let cursor = 0;
+      let contents = new Uint8Array(initialCapacity);
+      return {
+        get buffer() {
+          return contents.buffer;
+        },
+        reset() {
+          cursor = 0;
+        },
+        bytesView() {
+          return contents.subarray(0, cursor);
+        },
+        bytes() {
+          return contents.slice(0, cursor);
+        },
+        writeByte(byte) {
+          expand2(cursor + 1);
+          contents[cursor] = byte;
+          cursor++;
+        },
+        writeBytes(data, offset = 0, byteLength = data.length) {
+          expand2(cursor + byteLength);
+          for (let i = 0; i < byteLength; i++) {
+            contents[cursor++] = data[i + offset];
+          }
+        },
+        writeBytesView(data, offset = 0, byteLength = data.byteLength) {
+          expand2(cursor + byteLength);
+          contents.set(data.subarray(offset, offset + byteLength), cursor);
+          cursor += byteLength;
+        }
+      };
+      function expand2(newCapacity) {
+        var prevCapacity = contents.length;
+        if (prevCapacity >= newCapacity)
+          return;
+        var CAPACITY_DOUBLING_MAX = 1024 * 1024;
+        newCapacity = Math.max(newCapacity, prevCapacity * (prevCapacity < CAPACITY_DOUBLING_MAX ? 2 : 1.125) >>> 0);
+        if (prevCapacity != 0)
+          newCapacity = Math.max(newCapacity, 256);
+        const oldContents = contents;
+        contents = new Uint8Array(newCapacity);
+        if (cursor > 0)
+          contents.set(oldContents.subarray(0, cursor), 0);
+      }
+    }
+    var BITS = 12;
+    var DEFAULT_HSIZE = 5003;
+    var MASKS = [
+      0,
+      1,
+      3,
+      7,
+      15,
+      31,
+      63,
+      127,
+      255,
+      511,
+      1023,
+      2047,
+      4095,
+      8191,
+      16383,
+      32767,
+      65535
+    ];
+    function lzwEncode(width, height, pixels, colorDepth, outStream = createStream(512), accum = new Uint8Array(256), htab = new Int32Array(DEFAULT_HSIZE), codetab = new Int32Array(DEFAULT_HSIZE)) {
+      const hsize = htab.length;
+      const initCodeSize = Math.max(2, colorDepth);
+      accum.fill(0);
+      codetab.fill(0);
+      htab.fill(-1);
+      let cur_accum = 0;
+      let cur_bits = 0;
+      const init_bits = initCodeSize + 1;
+      const g_init_bits = init_bits;
+      let clear_flg = false;
+      let n_bits = g_init_bits;
+      let maxcode = (1 << n_bits) - 1;
+      const ClearCode = 1 << init_bits - 1;
+      const EOFCode = ClearCode + 1;
+      let free_ent = ClearCode + 2;
+      let a_count = 0;
+      let ent = pixels[0];
+      let hshift = 0;
+      for (let fcode = hsize; fcode < 65536; fcode *= 2) {
+        ++hshift;
+      }
+      hshift = 8 - hshift;
+      outStream.writeByte(initCodeSize);
+      output(ClearCode);
+      const length = pixels.length;
+      for (let idx = 1; idx < length; idx++) {
+        next_block: {
+          const c = pixels[idx];
+          const fcode = (c << BITS) + ent;
+          let i = c << hshift ^ ent;
+          if (htab[i] === fcode) {
+            ent = codetab[i];
+            break next_block;
+          }
+          const disp = i === 0 ? 1 : hsize - i;
+          while (htab[i] >= 0) {
+            i -= disp;
+            if (i < 0)
+              i += hsize;
+            if (htab[i] === fcode) {
+              ent = codetab[i];
+              break next_block;
+            }
+          }
+          output(ent);
+          ent = c;
+          if (free_ent < 1 << BITS) {
+            codetab[i] = free_ent++;
+            htab[i] = fcode;
+          } else {
+            htab.fill(-1);
+            free_ent = ClearCode + 2;
+            clear_flg = true;
+            output(ClearCode);
+          }
+        }
+      }
+      output(ent);
+      output(EOFCode);
+      outStream.writeByte(0);
+      return outStream.bytesView();
+      function output(code) {
+        cur_accum &= MASKS[cur_bits];
+        if (cur_bits > 0)
+          cur_accum |= code << cur_bits;
+        else
+          cur_accum = code;
+        cur_bits += n_bits;
+        while (cur_bits >= 8) {
+          accum[a_count++] = cur_accum & 255;
+          if (a_count >= 254) {
+            outStream.writeByte(a_count);
+            outStream.writeBytesView(accum, 0, a_count);
+            a_count = 0;
+          }
+          cur_accum >>= 8;
+          cur_bits -= 8;
+        }
+        if (free_ent > maxcode || clear_flg) {
+          if (clear_flg) {
+            n_bits = g_init_bits;
+            maxcode = (1 << n_bits) - 1;
+            clear_flg = false;
+          } else {
+            ++n_bits;
+            maxcode = n_bits === BITS ? 1 << n_bits : (1 << n_bits) - 1;
+          }
+        }
+        if (code == EOFCode) {
+          while (cur_bits > 0) {
+            accum[a_count++] = cur_accum & 255;
+            if (a_count >= 254) {
+              outStream.writeByte(a_count);
+              outStream.writeBytesView(accum, 0, a_count);
+              a_count = 0;
+            }
+            cur_accum >>= 8;
+            cur_bits -= 8;
+          }
+          if (a_count > 0) {
+            outStream.writeByte(a_count);
+            outStream.writeBytesView(accum, 0, a_count);
+            a_count = 0;
+          }
+        }
+      }
+    }
+    var lzwEncode_default = lzwEncode;
+    function rgb888_to_rgb565(r, g, b) {
+      return r << 8 & 63488 | g << 2 & 992 | b >> 3;
+    }
+    function rgba8888_to_rgba4444(r, g, b, a) {
+      return r >> 4 | g & 240 | (b & 240) << 4 | (a & 240) << 8;
+    }
+    function rgb888_to_rgb444(r, g, b) {
+      return r >> 4 << 8 | g & 240 | b >> 4;
+    }
+    function clamp(value, min2, max2) {
+      return value < min2 ? min2 : value > max2 ? max2 : value;
+    }
+    function sqr(value) {
+      return value * value;
+    }
+    function find_nn(bins, idx, hasAlpha) {
+      var nn = 0;
+      var err = 1e100;
+      const bin1 = bins[idx];
+      const n1 = bin1.cnt;
+      const wa = bin1.ac;
+      const wr = bin1.rc;
+      const wg = bin1.gc;
+      const wb = bin1.bc;
+      for (var i = bin1.fw; i != 0; i = bins[i].fw) {
+        const bin = bins[i];
+        const n2 = bin.cnt;
+        const nerr2 = n1 * n2 / (n1 + n2);
+        if (nerr2 >= err)
+          continue;
+        var nerr = 0;
+        if (hasAlpha) {
+          nerr += nerr2 * sqr(bin.ac - wa);
+          if (nerr >= err)
+            continue;
+        }
+        nerr += nerr2 * sqr(bin.rc - wr);
+        if (nerr >= err)
+          continue;
+        nerr += nerr2 * sqr(bin.gc - wg);
+        if (nerr >= err)
+          continue;
+        nerr += nerr2 * sqr(bin.bc - wb);
+        if (nerr >= err)
+          continue;
+        err = nerr;
+        nn = i;
+      }
+      bin1.err = err;
+      bin1.nn = nn;
+    }
+    function create_bin() {
+      return {
+        ac: 0,
+        rc: 0,
+        gc: 0,
+        bc: 0,
+        cnt: 0,
+        nn: 0,
+        fw: 0,
+        bk: 0,
+        tm: 0,
+        mtm: 0,
+        err: 0
+      };
+    }
+    function create_bin_list(data, format2) {
+      const bincount = format2 === "rgb444" ? 4096 : 65536;
+      const bins = new Array(bincount);
+      const size = data.length;
+      if (format2 === "rgba4444") {
+        for (let i = 0; i < size; ++i) {
+          const color2 = data[i];
+          const a = color2 >> 24 & 255;
+          const b = color2 >> 16 & 255;
+          const g = color2 >> 8 & 255;
+          const r = color2 & 255;
+          const index = rgba8888_to_rgba4444(r, g, b, a);
+          let bin = index in bins ? bins[index] : bins[index] = create_bin();
+          bin.rc += r;
+          bin.gc += g;
+          bin.bc += b;
+          bin.ac += a;
+          bin.cnt++;
+        }
+      } else if (format2 === "rgb444") {
+        for (let i = 0; i < size; ++i) {
+          const color2 = data[i];
+          const b = color2 >> 16 & 255;
+          const g = color2 >> 8 & 255;
+          const r = color2 & 255;
+          const index = rgb888_to_rgb444(r, g, b);
+          let bin = index in bins ? bins[index] : bins[index] = create_bin();
+          bin.rc += r;
+          bin.gc += g;
+          bin.bc += b;
+          bin.cnt++;
+        }
+      } else {
+        for (let i = 0; i < size; ++i) {
+          const color2 = data[i];
+          const b = color2 >> 16 & 255;
+          const g = color2 >> 8 & 255;
+          const r = color2 & 255;
+          const index = rgb888_to_rgb565(r, g, b);
+          let bin = index in bins ? bins[index] : bins[index] = create_bin();
+          bin.rc += r;
+          bin.gc += g;
+          bin.bc += b;
+          bin.cnt++;
+        }
+      }
+      return bins;
+    }
+    function quantize2(rgba2, maxColors, opts = {}) {
+      const {
+        format: format2 = "rgb565",
+        clearAlpha = true,
+        clearAlphaColor = 0,
+        clearAlphaThreshold = 0,
+        oneBitAlpha = false
+      } = opts;
+      if (!rgba2 || !rgba2.buffer) {
+        throw new Error("quantize() expected RGBA Uint8Array data");
+      }
+      if (!(rgba2 instanceof Uint8Array) && !(rgba2 instanceof Uint8ClampedArray)) {
+        throw new Error("quantize() expected RGBA Uint8Array data");
+      }
+      const data = new Uint32Array(rgba2.buffer);
+      let useSqrt = opts.useSqrt !== false;
+      const hasAlpha = format2 === "rgba4444";
+      const bins = create_bin_list(data, format2);
+      const bincount = bins.length;
+      const bincountMinusOne = bincount - 1;
+      const heap2 = new Uint32Array(bincount + 1);
+      var maxbins = 0;
+      for (var i = 0; i < bincount; ++i) {
+        const bin = bins[i];
+        if (bin != null) {
+          var d = 1 / bin.cnt;
+          if (hasAlpha)
+            bin.ac *= d;
+          bin.rc *= d;
+          bin.gc *= d;
+          bin.bc *= d;
+          bins[maxbins++] = bin;
+        }
+      }
+      if (sqr(maxColors) / maxbins < 0.022) {
+        useSqrt = false;
+      }
+      var i = 0;
+      for (; i < maxbins - 1; ++i) {
+        bins[i].fw = i + 1;
+        bins[i + 1].bk = i;
+        if (useSqrt)
+          bins[i].cnt = Math.sqrt(bins[i].cnt);
+      }
+      if (useSqrt)
+        bins[i].cnt = Math.sqrt(bins[i].cnt);
+      var h, l, l2;
+      for (i = 0; i < maxbins; ++i) {
+        find_nn(bins, i, false);
+        var err = bins[i].err;
+        for (l = ++heap2[0]; l > 1; l = l2) {
+          l2 = l >> 1;
+          if (bins[h = heap2[l2]].err <= err)
+            break;
+          heap2[l] = h;
+        }
+        heap2[l] = i;
+      }
+      var extbins = maxbins - maxColors;
+      for (i = 0; i < extbins; ) {
+        var tb;
+        for (; ; ) {
+          var b1 = heap2[1];
+          tb = bins[b1];
+          if (tb.tm >= tb.mtm && bins[tb.nn].mtm <= tb.tm)
+            break;
+          if (tb.mtm == bincountMinusOne)
+            b1 = heap2[1] = heap2[heap2[0]--];
+          else {
+            find_nn(bins, b1, false);
+            tb.tm = i;
+          }
+          var err = bins[b1].err;
+          for (l = 1; (l2 = l + l) <= heap2[0]; l = l2) {
+            if (l2 < heap2[0] && bins[heap2[l2]].err > bins[heap2[l2 + 1]].err)
+              l2++;
+            if (err <= bins[h = heap2[l2]].err)
+              break;
+            heap2[l] = h;
+          }
+          heap2[l] = b1;
+        }
+        var nb = bins[tb.nn];
+        var n1 = tb.cnt;
+        var n2 = nb.cnt;
+        var d = 1 / (n1 + n2);
+        if (hasAlpha)
+          tb.ac = d * (n1 * tb.ac + n2 * nb.ac);
+        tb.rc = d * (n1 * tb.rc + n2 * nb.rc);
+        tb.gc = d * (n1 * tb.gc + n2 * nb.gc);
+        tb.bc = d * (n1 * tb.bc + n2 * nb.bc);
+        tb.cnt += nb.cnt;
+        tb.mtm = ++i;
+        bins[nb.bk].fw = nb.fw;
+        bins[nb.fw].bk = nb.bk;
+        nb.mtm = bincountMinusOne;
+      }
+      let palette = [];
+      var k = 0;
+      for (i = 0; ; ++k) {
+        let r = clamp(Math.round(bins[i].rc), 0, 255);
+        let g = clamp(Math.round(bins[i].gc), 0, 255);
+        let b = clamp(Math.round(bins[i].bc), 0, 255);
+        let a = 255;
+        if (hasAlpha) {
+          a = clamp(Math.round(bins[i].ac), 0, 255);
+          if (oneBitAlpha) {
+            const threshold = typeof oneBitAlpha === "number" ? oneBitAlpha : 127;
+            a = a <= threshold ? 0 : 255;
+          }
+          if (clearAlpha && a <= clearAlphaThreshold) {
+            r = g = b = clearAlphaColor;
+            a = 0;
+          }
+        }
+        const color2 = hasAlpha ? [r, g, b, a] : [r, g, b];
+        const exists2 = existsInPalette(palette, color2);
+        if (!exists2)
+          palette.push(color2);
+        if ((i = bins[i].fw) == 0)
+          break;
+      }
+      return palette;
+    }
+    function existsInPalette(palette, color2) {
+      for (let i = 0; i < palette.length; i++) {
+        const p = palette[i];
+        let matchesRGB = p[0] === color2[0] && p[1] === color2[1] && p[2] === color2[2];
+        let matchesAlpha = p.length >= 4 && color2.length >= 4 ? p[3] === color2[3] : true;
+        if (matchesRGB && matchesAlpha)
+          return true;
+      }
+      return false;
+    }
+    function euclideanDistanceSquared(a, b) {
+      var sum = 0;
+      var n;
+      for (n = 0; n < a.length; n++) {
+        const dx = a[n] - b[n];
+        sum += dx * dx;
+      }
+      return sum;
+    }
+    function roundStep(byte, step) {
+      return step > 1 ? Math.round(byte / step) * step : byte;
+    }
+    function prequantize(rgba2, { roundRGB = 5, roundAlpha = 10, oneBitAlpha = null } = {}) {
+      const data = new Uint32Array(rgba2.buffer);
+      for (let i = 0; i < data.length; i++) {
+        const color2 = data[i];
+        let a = color2 >> 24 & 255;
+        let b = color2 >> 16 & 255;
+        let g = color2 >> 8 & 255;
+        let r = color2 & 255;
+        a = roundStep(a, roundAlpha);
+        if (oneBitAlpha) {
+          const threshold = typeof oneBitAlpha === "number" ? oneBitAlpha : 127;
+          a = a <= threshold ? 0 : 255;
+        }
+        r = roundStep(r, roundRGB);
+        g = roundStep(g, roundRGB);
+        b = roundStep(b, roundRGB);
+        data[i] = a << 24 | b << 16 | g << 8 | r << 0;
+      }
+    }
+    function applyPalette2(rgba2, palette, format2 = "rgb565") {
+      if (!rgba2 || !rgba2.buffer) {
+        throw new Error("quantize() expected RGBA Uint8Array data");
+      }
+      if (!(rgba2 instanceof Uint8Array) && !(rgba2 instanceof Uint8ClampedArray)) {
+        throw new Error("quantize() expected RGBA Uint8Array data");
+      }
+      if (palette.length > 256) {
+        throw new Error("applyPalette() only works with 256 colors or less");
+      }
+      const data = new Uint32Array(rgba2.buffer);
+      const length = data.length;
+      const bincount = format2 === "rgb444" ? 4096 : 65536;
+      const index = new Uint8Array(length);
+      const cache = new Array(bincount);
+      const hasAlpha = format2 === "rgba4444";
+      if (format2 === "rgba4444") {
+        for (let i = 0; i < length; i++) {
+          const color2 = data[i];
+          const a = color2 >> 24 & 255;
+          const b = color2 >> 16 & 255;
+          const g = color2 >> 8 & 255;
+          const r = color2 & 255;
+          const key = rgba8888_to_rgba4444(r, g, b, a);
+          const idx = key in cache ? cache[key] : cache[key] = nearestColorIndexRGBA(r, g, b, a, palette);
+          index[i] = idx;
+        }
+      } else {
+        const rgb888_to_key = format2 === "rgb444" ? rgb888_to_rgb444 : rgb888_to_rgb565;
+        for (let i = 0; i < length; i++) {
+          const color2 = data[i];
+          const b = color2 >> 16 & 255;
+          const g = color2 >> 8 & 255;
+          const r = color2 & 255;
+          const key = rgb888_to_key(r, g, b);
+          const idx = key in cache ? cache[key] : cache[key] = nearestColorIndexRGB(r, g, b, palette);
+          index[i] = idx;
+        }
+      }
+      return index;
+    }
+    function nearestColorIndexRGBA(r, g, b, a, palette) {
+      let k = 0;
+      let mindist = 1e100;
+      for (let i = 0; i < palette.length; i++) {
+        const px2 = palette[i];
+        const a2 = px2[3];
+        let curdist = sqr2(a2 - a);
+        if (curdist > mindist)
+          continue;
+        const r2 = px2[0];
+        curdist += sqr2(r2 - r);
+        if (curdist > mindist)
+          continue;
+        const g2 = px2[1];
+        curdist += sqr2(g2 - g);
+        if (curdist > mindist)
+          continue;
+        const b2 = px2[2];
+        curdist += sqr2(b2 - b);
+        if (curdist > mindist)
+          continue;
+        mindist = curdist;
+        k = i;
+      }
+      return k;
+    }
+    function nearestColorIndexRGB(r, g, b, palette) {
+      let k = 0;
+      let mindist = 1e100;
+      for (let i = 0; i < palette.length; i++) {
+        const px2 = palette[i];
+        const r2 = px2[0];
+        let curdist = sqr2(r2 - r);
+        if (curdist > mindist)
+          continue;
+        const g2 = px2[1];
+        curdist += sqr2(g2 - g);
+        if (curdist > mindist)
+          continue;
+        const b2 = px2[2];
+        curdist += sqr2(b2 - b);
+        if (curdist > mindist)
+          continue;
+        mindist = curdist;
+        k = i;
+      }
+      return k;
+    }
+    function snapColorsToPalette(palette, knownColors, threshold = 5) {
+      if (!palette.length || !knownColors.length)
+        return;
+      const paletteRGB = palette.map((p) => p.slice(0, 3));
+      const thresholdSq = threshold * threshold;
+      const dim = palette[0].length;
+      for (let i = 0; i < knownColors.length; i++) {
+        let color2 = knownColors[i];
+        if (color2.length < dim) {
+          color2 = [color2[0], color2[1], color2[2], 255];
+        } else if (color2.length > dim) {
+          color2 = color2.slice(0, 3);
+        } else {
+          color2 = color2.slice();
+        }
+        const r = nearestColorIndexWithDistance(paletteRGB, color2.slice(0, 3), euclideanDistanceSquared);
+        const idx = r[0];
+        const distanceSq = r[1];
+        if (distanceSq > 0 && distanceSq <= thresholdSq) {
+          palette[idx] = color2;
+        }
+      }
+    }
+    function sqr2(a) {
+      return a * a;
+    }
+    function nearestColorIndex(colors, pixel, distanceFn = euclideanDistanceSquared) {
+      let minDist = Infinity;
+      let minDistIndex = -1;
+      for (let j = 0; j < colors.length; j++) {
+        const paletteColor = colors[j];
+        const dist = distanceFn(pixel, paletteColor);
+        if (dist < minDist) {
+          minDist = dist;
+          minDistIndex = j;
+        }
+      }
+      return minDistIndex;
+    }
+    function nearestColorIndexWithDistance(colors, pixel, distanceFn = euclideanDistanceSquared) {
+      let minDist = Infinity;
+      let minDistIndex = -1;
+      for (let j = 0; j < colors.length; j++) {
+        const paletteColor = colors[j];
+        const dist = distanceFn(pixel, paletteColor);
+        if (dist < minDist) {
+          minDist = dist;
+          minDistIndex = j;
+        }
+      }
+      return [minDistIndex, minDist];
+    }
+    function nearestColor(colors, pixel, distanceFn = euclideanDistanceSquared) {
+      return colors[nearestColorIndex(colors, pixel, distanceFn)];
+    }
+    function GIFEncoder2(opt = {}) {
+      const { initialCapacity = 4096, auto = true } = opt;
+      const stream = createStream(initialCapacity);
+      const HSIZE = 5003;
+      const accum = new Uint8Array(256);
+      const htab = new Int32Array(HSIZE);
+      const codetab = new Int32Array(HSIZE);
+      let hasInit = false;
+      return {
+        reset() {
+          stream.reset();
+          hasInit = false;
+        },
+        finish() {
+          stream.writeByte(constants_default.trailer);
+        },
+        bytes() {
+          return stream.bytes();
+        },
+        bytesView() {
+          return stream.bytesView();
+        },
+        get buffer() {
+          return stream.buffer;
+        },
+        get stream() {
+          return stream;
+        },
+        writeHeader,
+        writeFrame(index, width, height, opts = {}) {
+          const {
+            transparent = false,
+            transparentIndex = 0,
+            delay = 0,
+            palette = null,
+            repeat = 0,
+            colorDepth = 8,
+            dispose = -1
+          } = opts;
+          let first = false;
+          if (auto) {
+            if (!hasInit) {
+              first = true;
+              writeHeader();
+              hasInit = true;
+            }
+          } else {
+            first = Boolean(opts.first);
+          }
+          width = Math.max(0, Math.floor(width));
+          height = Math.max(0, Math.floor(height));
+          if (first) {
+            if (!palette) {
+              throw new Error("First frame must include a { palette } option");
+            }
+            encodeLogicalScreenDescriptor(stream, width, height, palette, colorDepth);
+            encodeColorTable(stream, palette);
+            if (repeat >= 0) {
+              encodeNetscapeExt(stream, repeat);
+            }
+          }
+          const delayTime = Math.round(delay / 10);
+          encodeGraphicControlExt(stream, dispose, delayTime, transparent, transparentIndex);
+          const useLocalColorTable = Boolean(palette) && !first;
+          encodeImageDescriptor(stream, width, height, useLocalColorTable ? palette : null);
+          if (useLocalColorTable)
+            encodeColorTable(stream, palette);
+          encodePixels(stream, index, width, height, colorDepth, accum, htab, codetab);
+        }
+      };
+      function writeHeader() {
+        writeUTFBytes(stream, "GIF89a");
+      }
+    }
+    function encodeGraphicControlExt(stream, dispose, delay, transparent, transparentIndex) {
+      stream.writeByte(33);
+      stream.writeByte(249);
+      stream.writeByte(4);
+      if (transparentIndex < 0) {
+        transparentIndex = 0;
+        transparent = false;
+      }
+      var transp, disp;
+      if (!transparent) {
+        transp = 0;
+        disp = 0;
+      } else {
+        transp = 1;
+        disp = 2;
+      }
+      if (dispose >= 0) {
+        disp = dispose & 7;
+      }
+      disp <<= 2;
+      const userInput = 0;
+      stream.writeByte(0 | disp | userInput | transp);
+      writeUInt16(stream, delay);
+      stream.writeByte(transparentIndex || 0);
+      stream.writeByte(0);
+    }
+    function encodeLogicalScreenDescriptor(stream, width, height, palette, colorDepth = 8) {
+      const globalColorTableFlag = 1;
+      const sortFlag = 0;
+      const globalColorTableSize = colorTableSize(palette.length) - 1;
+      const fields = globalColorTableFlag << 7 | colorDepth - 1 << 4 | sortFlag << 3 | globalColorTableSize;
+      const backgroundColorIndex = 0;
+      const pixelAspectRatio = 0;
+      writeUInt16(stream, width);
+      writeUInt16(stream, height);
+      stream.writeBytes([fields, backgroundColorIndex, pixelAspectRatio]);
+    }
+    function encodeNetscapeExt(stream, repeat) {
+      stream.writeByte(33);
+      stream.writeByte(255);
+      stream.writeByte(11);
+      writeUTFBytes(stream, "NETSCAPE2.0");
+      stream.writeByte(3);
+      stream.writeByte(1);
+      writeUInt16(stream, repeat);
+      stream.writeByte(0);
+    }
+    function encodeColorTable(stream, palette) {
+      const colorTableLength = 1 << colorTableSize(palette.length);
+      for (let i = 0; i < colorTableLength; i++) {
+        let color2 = [0, 0, 0];
+        if (i < palette.length) {
+          color2 = palette[i];
+        }
+        stream.writeByte(color2[0]);
+        stream.writeByte(color2[1]);
+        stream.writeByte(color2[2]);
+      }
+    }
+    function encodeImageDescriptor(stream, width, height, localPalette) {
+      stream.writeByte(44);
+      writeUInt16(stream, 0);
+      writeUInt16(stream, 0);
+      writeUInt16(stream, width);
+      writeUInt16(stream, height);
+      if (localPalette) {
+        const interlace = 0;
+        const sorted = 0;
+        const palSize = colorTableSize(localPalette.length) - 1;
+        stream.writeByte(128 | interlace | sorted | 0 | palSize);
+      } else {
+        stream.writeByte(0);
+      }
+    }
+    function encodePixels(stream, index, width, height, colorDepth = 8, accum, htab, codetab) {
+      lzwEncode_default(width, height, index, colorDepth, stream, accum, htab, codetab);
+    }
+    function writeUInt16(stream, short) {
+      stream.writeByte(short & 255);
+      stream.writeByte(short >> 8 & 255);
+    }
+    function writeUTFBytes(stream, text) {
+      for (var i = 0; i < text.length; i++) {
+        stream.writeByte(text.charCodeAt(i));
+      }
+    }
+    function colorTableSize(length) {
+      return Math.max(Math.ceil(Math.log2(length)), 1);
+    }
+    var src_default = GIFEncoder2;
   }
 });
 
@@ -19763,11 +20575,11 @@ import { EOL as EOL3 } from "os";
 import { constants, promises } from "fs";
 var __awaiter = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve2) {
-      resolve2(value);
+    return value instanceof P ? value : new P(function(resolve3) {
+      resolve3(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve2, reject) {
+  return new (P || (P = Promise))(function(resolve3, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -19783,7 +20595,7 @@ var __awaiter = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve2(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -20111,6 +20923,10 @@ var PathValidationError = class extends Error {
   }
 };
 var CONTROL_CHARS = /[\u0000-\u001F]/;
+var ALLOWED_EXTENSIONS = [".svg", ".gif"];
+function outputFormat(value) {
+  return value.toLowerCase().endsWith(".gif") ? "gif" : "svg";
+}
 function validateOutputPath(raw) {
   const value = raw.trim();
   if (value.length === 0) {
@@ -20136,8 +20952,10 @@ function validateOutputPath(raw) {
   if (value.startsWith("//")) {
     throw new PathValidationError("Output path must not be a UNC path.");
   }
-  if (!value.toLowerCase().endsWith(".svg")) {
-    throw new PathValidationError('Output path must end with ".svg".');
+  if (!ALLOWED_EXTENSIONS.some((ext) => value.toLowerCase().endsWith(ext))) {
+    throw new PathValidationError(
+      'Output path must end with ".svg" or ".gif".'
+    );
   }
   const segments = value.split("/").filter((s) => s.length > 0);
   for (const segment of segments) {
@@ -20159,7 +20977,7 @@ function deriveDualPaths(raw) {
   const extensionIndex = normalized.lastIndexOf(".");
   if (extensionIndex <= 0) {
     throw new PathValidationError(
-      'Output path must have a name before the ".svg" extension.'
+      "Output path must have a name before the file extension."
     );
   }
   const stem = normalized.slice(0, extensionIndex);
@@ -20167,7 +20985,7 @@ function deriveDualPaths(raw) {
   const base = stem.split("/").pop() ?? "";
   if (base.length === 0) {
     throw new PathValidationError(
-      'Output path must have a file name before the ".svg" extension.'
+      "Output path must have a file name before the file extension."
     );
   }
   const light = validateOutputPath(`${stem}-light${extension}`);
@@ -20492,6 +21310,11 @@ function parseInputs(raw, options = {}) {
   const style = parseEnum("style", raw.style, STYLES, "contributions");
   const dualTheme = parseBoolean("dual_theme", raw.dual_theme, false);
   const theme = resolveTheme(raw, dualTheme, warn);
+  if (outputFormat(output) === "gif" && theme === "auto" && !dualTheme) {
+    throw new ConfigError(
+      'A GIF output cannot use theme "auto" (raster images cannot respond to prefers-color-scheme). Set theme to "light" or "dark", or enable dual_theme to emit both.'
+    );
+  }
   const scale = parseEnum("scale", raw.scale, SCALES, "absolute");
   const dateFormat = parseEnum(
     "date_format",
@@ -20753,8 +21576,8 @@ var Context = class {
       if (existsSync2(process.env.GITHUB_EVENT_PATH)) {
         this.payload = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, { encoding: "utf8" }));
       } else {
-        const path4 = process.env.GITHUB_EVENT_PATH;
-        process.stdout.write(`GITHUB_EVENT_PATH ${path4} does not exist${EOL5}`);
+        const path5 = process.env.GITHUB_EVENT_PATH;
+        process.stdout.write(`GITHUB_EVENT_PATH ${path5} does not exist${EOL5}`);
       }
     }
     this.eventName = process.env.GITHUB_EVENT_NAME;
@@ -20795,11 +21618,11 @@ var httpClient = __toESM(require_lib(), 1);
 var import_undici2 = __toESM(require_undici(), 1);
 var __awaiter2 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve2) {
-      resolve2(value);
+    return value instanceof P ? value : new P(function(resolve3) {
+      resolve3(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve2, reject) {
+  return new (P || (P = Promise))(function(resolve3, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -20815,7 +21638,7 @@ var __awaiter2 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve2(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -21785,8 +22608,8 @@ function isPlainObject2(value) {
 }
 var noop = () => "";
 async function fetchWrapper(requestOptions) {
-  const fetch2 = requestOptions.request?.fetch || globalThis.fetch;
-  if (!fetch2) {
+  const fetch3 = requestOptions.request?.fetch || globalThis.fetch;
+  if (!fetch3) {
     throw new Error(
       "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
     );
@@ -21802,7 +22625,7 @@ async function fetchWrapper(requestOptions) {
   );
   let fetchResponse;
   try {
-    fetchResponse = await fetch2(requestOptions.url, {
+    fetchResponse = await fetch3(requestOptions.url, {
       method: requestOptions.method,
       body,
       redirect: requestOptions.request?.redirect,
@@ -24877,7 +25700,7 @@ var realTimers = {
     let remaining = ms;
     while (remaining > 0) {
       const chunk = Math.min(remaining, 2147483647);
-      await new Promise((resolve2) => setTimeout(resolve2, chunk));
+      await new Promise((resolve3) => setTimeout(resolve3, chunk));
       remaining -= chunk;
     }
   }
@@ -27034,6 +27857,176 @@ function keyframesForColumn(name, steps, rows, pitch) {
   return `@keyframes ${name}{${frames}}`;
 }
 
+// src/renderers/freeze.ts
+var currentFreeze = null;
+function freezeProgress() {
+  return currentFreeze;
+}
+function isFrozen() {
+  return currentFreeze !== null;
+}
+function withFreeze(cycleFraction, fn) {
+  const previous = currentFreeze;
+  currentFreeze = clamp01(cycleFraction);
+  try {
+    return fn();
+  } finally {
+    currentFreeze = previous;
+  }
+}
+function buildFraction(timeline) {
+  if (timeline.cycleSeconds <= 0) {
+    return 1;
+  }
+  return timeline.buildSeconds / timeline.cycleSeconds;
+}
+function wipeScaleAt(anim, timeline, pointCount, cycleFraction) {
+  const bf = buildFraction(timeline);
+  if (bf <= 0) {
+    return 1;
+  }
+  const local = clamp01(cycleFraction / bf);
+  const simultaneous = anim.direction === "simultaneous";
+  if (anim.style === "cascade") {
+    const count = Math.max(1, pointCount);
+    let scale = 0;
+    for (let i = 0; i <= count; i += 1) {
+      if (inverseEasing(anim.easing, i / count) <= local) {
+        scale = i / count;
+      }
+    }
+    return scale;
+  }
+  if (simultaneous && anim.style === "reveal") {
+    return local >= 1 ? 1 : 0;
+  }
+  return EASINGS[anim.easing](local);
+}
+function strokeDrawFractionAt(anim, timeline, cycleFraction) {
+  const bf = buildFraction(timeline);
+  if (bf <= 0) {
+    return 1;
+  }
+  return EASINGS[anim.easing](clamp01(cycleFraction / bf));
+}
+function barGrowScaleAt(anim, window, cycleFraction) {
+  const span = window.endFrac - window.startFrac;
+  if (span <= 0) {
+    return cycleFraction >= window.endFrac ? 1 : 0;
+  }
+  const local = clamp01((cycleFraction - window.startFrac) / span);
+  return EASINGS[anim.easing](local);
+}
+function totalRevealOpacityAt(timeline, cycleFraction) {
+  const endFrac = buildFraction(timeline);
+  const startFrac = endFrac * 0.9;
+  const span = endFrac - startFrac;
+  if (span <= 0) {
+    return cycleFraction >= endFrac ? 1 : 0;
+  }
+  return clamp01((cycleFraction - startFrac) / span);
+}
+function svgPathLength(d) {
+  const tokens = d.match(/[a-zA-Z]|-?\d*\.?\d+(?:e[-+]?\d+)?/gi);
+  if (!tokens) {
+    return 0;
+  }
+  let i = 0;
+  let command = "";
+  let cx = 0;
+  let cy = 0;
+  let startX = 0;
+  let startY = 0;
+  let length = 0;
+  const next = () => Number(tokens[i++] ?? "0");
+  while (i < tokens.length) {
+    const token = tokens[i] ?? "";
+    if (/[a-zA-Z]/.test(token)) {
+      command = token;
+      i += 1;
+    }
+    switch (command) {
+      case "M": {
+        cx = next();
+        cy = next();
+        startX = cx;
+        startY = cy;
+        command = "L";
+        break;
+      }
+      case "L": {
+        const x2 = next();
+        const y2 = next();
+        length += Math.hypot(x2 - cx, y2 - cy);
+        cx = x2;
+        cy = y2;
+        break;
+      }
+      case "H": {
+        const x2 = next();
+        length += Math.abs(x2 - cx);
+        cx = x2;
+        break;
+      }
+      case "V": {
+        const y2 = next();
+        length += Math.abs(y2 - cy);
+        cy = y2;
+        break;
+      }
+      case "C": {
+        const x1 = next();
+        const y1 = next();
+        const x2 = next();
+        const y2 = next();
+        const x3 = next();
+        const y3 = next();
+        length += cubicLength(cx, cy, x1, y1, x2, y2, x3, y3);
+        cx = x3;
+        cy = y3;
+        break;
+      }
+      case "Z":
+      case "z": {
+        length += Math.hypot(startX - cx, startY - cy);
+        cx = startX;
+        cy = startY;
+        break;
+      }
+      default: {
+        i += 1;
+      }
+    }
+  }
+  return length;
+}
+function cubicLength(x0, y0, x1, y1, x2, y2, x3, y3) {
+  const steps = 24;
+  let length = 0;
+  let px = x0;
+  let py = y0;
+  for (let s = 1; s <= steps; s += 1) {
+    const t = s / steps;
+    const mt = 1 - t;
+    const a = mt * mt * mt;
+    const b = 3 * mt * mt * t;
+    const c = 3 * mt * t * t;
+    const dd = t * t * t;
+    const x4 = a * x0 + b * x1 + c * x2 + dd * x3;
+    const y4 = a * y0 + b * y1 + c * y2 + dd * y3;
+    length += Math.hypot(x4 - px, y4 - py);
+    px = x4;
+    py = y4;
+  }
+  return length;
+}
+function clamp01(value) {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.min(1, Math.max(0, value));
+}
+
 // src/renderers/shared.ts
 var RenderError = class extends Error {
   constructor(message) {
@@ -27204,6 +28197,13 @@ function buildThemeCss(model) {
 function makeId(model) {
   return idFactory(`sc-${model.config.style}`);
 }
+function flattenThemeVars(svg, model, theme) {
+  const values = themeVarValues(theme, model);
+  return svg.replace(
+    /var\((--sc-[a-z0-9]+)\)/g,
+    (_match, name) => values[name] ?? "none"
+  );
+}
 function chartTitle(model) {
   return model.config.title ?? model.metadata.fullName;
 }
@@ -27306,15 +28306,19 @@ function renderHeader(model, layout) {
     const isTotal = line2.className.includes("sc-total");
     const shift = isTotal && change?.y === line2.y ? change.width + 10 : 0;
     const x2 = line2.right ? layout.width - layout.padX - shift : layout.padX;
-    const reveal = isTotal && model.config.animation.animateTotal && model.config.animation.mode !== "none" ? ` ${makeId(model)("total")}` : "";
+    const revealEligible = isTotal && model.config.animation.animateTotal && model.config.animation.mode !== "none";
+    const frozen = freezeProgress();
+    const reveal = revealEligible && frozen === null ? ` ${makeId(model)("total")}` : "";
+    const frozenOpacity = revealEligible && frozen !== null ? ` opacity="${totalRevealOpacityAt(resolveTimeline(model.config.animation), frozen).toFixed(3)}"` : "";
     const text = isTotal ? `<tspan class="sc-a">\u2605</tspan>${escapeText(line2.text.slice(1))}` : escapeText(line2.text);
-    return `<text x="${x2}" y="${line2.y}" class="${line2.className}${reveal}" font-size="${line2.size}" textLength="${line2.width}" lengthAdjust="spacingAndGlyphs"` + (line2.right ? ' text-anchor="end"' : "") + (line2.className.includes("sc-title") ? ' font-weight="600"' : "") + `>${text}</text>`;
+    return `<text x="${x2}" y="${line2.y}" class="${line2.className}${reveal}" font-size="${line2.size}" textLength="${line2.width}" lengthAdjust="spacingAndGlyphs"` + frozenOpacity + (line2.right ? ' text-anchor="end"' : "") + (line2.className.includes("sc-title") ? ' font-weight="600"' : "") + `>${text}</text>`;
   }).join("")}</g>`;
 }
 function totalRevealCss(model) {
   const anim = model.config.animation;
   if (!model.config.showTotal || !anim.animateTotal || anim.mode === "none")
     return "";
+  if (freezeProgress() !== null) return "";
   const id = makeId(model);
   const timeline = resolveTimeline(anim);
   const endFrac = timeline.buildSeconds / timeline.cycleSeconds;
@@ -28610,7 +29614,7 @@ function columnHeight(input, cumulative) {
   const h = Math.round(cumulative / max2 * rows);
   return clampInt(Math.max(h, 1), 0, rows);
 }
-function renderContributions(model) {
+function renderContributions(model, frame) {
   const geo = contribGeometry(model);
   const id = makeId(model);
   const padX = 16;
@@ -28644,7 +29648,8 @@ function renderContributions(model) {
   const l1PatId = id("l1");
   const defs = buildDefs(geo, clipId, emptyPatId, l1PatId, gridX, plotTop);
   const anim = model.config.animation;
-  const animEnabled = anim.mode !== "none";
+  const framing = frame !== void 0;
+  const animEnabled = !framing && anim.mode !== "none";
   const timeline = resolveTimeline(anim);
   const columnsSvg = [];
   const keyframes = [];
@@ -28652,7 +29657,8 @@ function renderContributions(model) {
   for (let j = 0; j < geo.cols; j += 1) {
     const h = heights[j] ?? 0;
     const colX = gridX + j * geo.pitch;
-    const finalTy = (geo.rows - h) * geo.pitch;
+    const exposed = framing ? Math.max(0, Math.min(h, frame.exposed[j] ?? 0)) : h;
+    const finalTy = (geo.rows - exposed) * geo.pitch;
     const colClass = id(`col${j}`);
     const bucket = model.buckets[j];
     const title = bucket ? columnTitle(model, bucket) : "";
@@ -28663,7 +29669,8 @@ function renderContributions(model) {
       plotTop,
       l1PatId,
       colClass,
-      finalTy
+      finalTy,
+      framing
     );
     columnsSvg.push(`<g>${title}${stack}</g>`);
     if (animEnabled && h > 0) {
@@ -28689,7 +29696,7 @@ function renderContributions(model) {
   }
   const plot = `<g clip-path="url(#${clipId})" aria-hidden="true"><rect x="${gridX}" y="${plotTop}" width="${coord(geo.gridWidth)}" height="${coord(geo.gridHeight)}" fill="url(#${emptyPatId})"/>` + columnsSvg.join("") + `</g>`;
   const emptyNote = model.isEmpty ? `<text x="${width / 2}" y="${plotTop + geo.gridHeight / 2}" class="sc-m" font-size="12" text-anchor="middle">No recorded additions yet</text>` : "";
-  const style = baseCss(model.config.fontFamily) + buildThemeCss(model) + animationCss(keyframes, animRules) + totalRevealCss(model);
+  const style = baseCss(model.config.fontFamily) + buildThemeCss(model) + animationCss(keyframes, animRules) + (framing ? "" : totalRevealCss(model));
   const min2 = model.config.scale === "visible" ? model.baseline : 0;
   const range = model.windowMax - min2;
   const tickCount = Math.max(
@@ -28738,7 +29745,7 @@ function buildDefs(geo, clipId, emptyPatId, l1PatId, gridX, plotTop) {
   const clip = `<clipPath id="${clipId}"><rect x="${gridX}" y="${plotTop}" width="${coord(geo.gridWidth)}" height="${coord(geo.gridHeight)}"/></clipPath>`;
   return pattern(emptyPatId, "sc-empty") + pattern(l1PatId, "sc-l1") + clip;
 }
-function buildColumnStack(geo, height, colX, plotTop, l1PatId, colClass, finalTy) {
+function buildColumnStack(geo, height, colX, plotTop, l1PatId, colClass, finalTy, attrTransform) {
   if (height <= 0) {
     return "";
   }
@@ -28751,7 +29758,8 @@ function buildColumnStack(geo, height, colX, plotTop, l1PatId, colClass, finalTy
     tips.push(cellRect(geo.pitch * 2, "sc-l2"));
   }
   const l1 = height >= 4 ? `<rect x="${colX}" y="${plotTop + geo.pitch * 3}" width="${geo.cell}" height="${coord(geo.rows * geo.pitch)}" fill="url(#${l1PatId})"/>` : "";
-  return `<g class="${colClass}" style="transform:translateY(${coord(finalTy)}px)">` + tips.join("") + l1 + `</g>`;
+  const placement = attrTransform ? `transform="translate(0 ${coord(finalTy)})"` : `style="transform:translateY(${coord(finalTy)}px)"`;
+  return `<g class="${colClass}" ${placement}>` + tips.join("") + l1 + `</g>`;
 }
 function columnTitle(model, bucket) {
   if (bucket.startTime === 0) {
@@ -28945,12 +29953,12 @@ function y(p) {
 
 // node_modules/d3-shape/src/line.js
 function line_default(x2, y2) {
-  var defined = constant_default2(true), context3 = null, curve = linear_default, output = null, path4 = withPath(line2);
+  var defined = constant_default2(true), context3 = null, curve = linear_default, output = null, path5 = withPath(line2);
   x2 = typeof x2 === "function" ? x2 : x2 === void 0 ? x : constant_default2(x2);
   y2 = typeof y2 === "function" ? y2 : y2 === void 0 ? y : constant_default2(y2);
   function line2(data) {
     var i, n = (data = array_default(data)).length, d, defined0 = false, buffer;
-    if (context3 == null) output = curve(buffer = path4());
+    if (context3 == null) output = curve(buffer = path5());
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined(d = data[i], i, data)) === defined0) {
         if (defined0 = !defined0) output.lineStart();
@@ -28980,13 +29988,13 @@ function line_default(x2, y2) {
 
 // node_modules/d3-shape/src/area.js
 function area_default(x0, y0, y1) {
-  var x1 = null, defined = constant_default2(true), context3 = null, curve = linear_default, output = null, path4 = withPath(area2);
+  var x1 = null, defined = constant_default2(true), context3 = null, curve = linear_default, output = null, path5 = withPath(area2);
   x0 = typeof x0 === "function" ? x0 : x0 === void 0 ? x : constant_default2(+x0);
   y0 = typeof y0 === "function" ? y0 : y0 === void 0 ? constant_default2(0) : constant_default2(+y0);
   y1 = typeof y1 === "function" ? y1 : y1 === void 0 ? y : constant_default2(+y1);
   function area2(data) {
     var i, j, k, n = (data = array_default(data)).length, d, defined0 = false, buffer, x0z = new Array(n), y0z = new Array(n);
-    if (context3 == null) output = curve(buffer = path4());
+    if (context3 == null) output = curve(buffer = path5());
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined(d = data[i], i, data)) === defined0) {
         if (defined0 = !defined0) {
@@ -29233,8 +30241,22 @@ function pointTitles(model, frame) {
 function wipeClip(frame, id, anim, timeline, padding = 0) {
   const clipId = id("wipe");
   const wipeCls = id("wipefill");
-  const defs = `<clipPath id="${clipId}"><rect class="${wipeCls}" x="${coord(frame.plotLeft - padding)}" y="${coord(frame.plotTop - Math.max(3, padding))}" width="${coord(frame.plotWidth + padding * 2)}" height="${coord(frame.plotHeight + Math.max(3, padding) * 2)}"/></clipPath>`;
+  const rectX = frame.plotLeft - padding;
+  const rectY = frame.plotTop - Math.max(3, padding);
+  const rectW = frame.plotWidth + padding * 2;
+  const rectH = frame.plotHeight + Math.max(3, padding) * 2;
   const simultaneous = anim.direction === "simultaneous";
+  const frozen = freezeProgress();
+  if (frozen !== null) {
+    const scale = wipeScaleAt(anim, timeline, frame.points.length, frozen);
+    const x2 = rectX;
+    const w = simultaneous ? rectW : rectW * scale;
+    const h = simultaneous ? rectH * scale : rectH;
+    const y2 = simultaneous ? rectY + rectH - h : rectY;
+    const defs2 = `<clipPath id="${clipId}"><rect x="${coord(x2)}" y="${coord(y2)}" width="${coord(w)}" height="${coord(h)}"/></clipPath>`;
+    return { clipId, defs: defs2, css: "" };
+  }
+  const defs = `<clipPath id="${clipId}"><rect class="${wipeCls}" x="${coord(rectX)}" y="${coord(rectY)}" width="${coord(rectW)}" height="${coord(rectH)}"/></clipPath>`;
   const timing = anim.style === "cascade" ? `steps(${Math.max(1, frame.points.length)},end)` : simultaneous && anim.style === "reveal" ? "steps(1,end)" : anim.easing;
   const axis = simultaneous ? "Y" : "X";
   const kf = id("wipekf");
@@ -29283,22 +30305,33 @@ function renderLineLike(model, opts) {
   const timeline = resolveTimeline(anim);
   const animEnabled = anim.mode !== "none";
   const generator = line_default().x((d) => d.x).y((d) => d.y).curve(chartCurve(model));
-  const path4 = generator(frame.points.map((p) => ({ x: p.x, y: p.y }))) ?? "";
+  const path5 = generator(frame.points.map((p) => ({ x: p.x, y: p.y }))) ?? "";
   const single = frame.points.length === 1 ? frame.points[0] : null;
   let animCss = "";
   let pathAttrs = "";
   let wipeDefs = "";
   let clipWrapOpen = "";
   let clipWrapClose = "";
-  if (animEnabled && path4) {
+  if (animEnabled && path5) {
     if (anim.style === "grow" && anim.direction === "chronological" && !single) {
-      const kf = id("draw");
-      const drawCls = id("drawline");
-      pathAttrs = ` pathLength="1" class="sc-stroke ${drawCls}"`;
-      animCss = progressKeyframes(kf, "stroke-dashoffset", "1", "0", {
-        startFrac: 0,
-        endFrac: timeline.buildSeconds / timeline.cycleSeconds
-      }) + `@media (prefers-reduced-motion:no-preference){.${drawCls}{stroke-dasharray:1;stroke-dashoffset:0;animation:${kf} ${timeline.cycleSeconds}s ${anim.easing} ${timeline.delaySeconds}s ${timeline.iteration} both;}}`;
+      if (isFrozen()) {
+        const eased = strokeDrawFractionAt(
+          anim,
+          timeline,
+          freezeProgress() ?? 1
+        );
+        const total = svgPathLength(path5);
+        const drawn = total * eased;
+        pathAttrs = ` class="sc-stroke" stroke-dasharray="${coord(drawn)} ${coord(total)}"`;
+      } else {
+        const kf = id("draw");
+        const drawCls = id("drawline");
+        pathAttrs = ` pathLength="1" class="sc-stroke ${drawCls}"`;
+        animCss = progressKeyframes(kf, "stroke-dashoffset", "1", "0", {
+          startFrac: 0,
+          endFrac: timeline.buildSeconds / timeline.cycleSeconds
+        }) + `@media (prefers-reduced-motion:no-preference){.${drawCls}{stroke-dasharray:1;stroke-dashoffset:0;animation:${kf} ${timeline.cycleSeconds}s ${anim.easing} ${timeline.delaySeconds}s ${timeline.iteration} both;}}`;
+      }
     } else {
       const wipe = wipeClip(frame, id, anim, timeline);
       wipeDefs = wipe.defs;
@@ -29309,7 +30342,7 @@ function renderLineLike(model, opts) {
   }
   const strokeWidth = opts.compact ? 1.75 : 2;
   const pathClass = pathAttrs || ' class="sc-stroke"';
-  const pathEl = path4 ? `<path d="${path4}"${pathClass} stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/>` : "";
+  const pathEl = path5 ? `<path d="${path5}"${pathClass} stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/>` : "";
   const dot = single ? `<circle class="sc-dot" cx="${coord(single.x)}" cy="${coord(single.y)}" r="3"/>` : "";
   const axis = renderYAxis(frame);
   const plot = axis + `<g aria-hidden="true">${clipWrapOpen}${pathEl}${dot}${clipWrapClose}</g>` + pointTitles(model, frame);
@@ -29371,6 +30404,7 @@ function renderBar(model) {
   const barW = frame.barWidth;
   const growMode = animEnabled && anim.style === "grow";
   const wipeMode = animEnabled && anim.style !== "grow";
+  const frozenGrow = growMode && isFrozen();
   let wipeDefs = "";
   let animCss = "";
   let open2 = "";
@@ -29382,7 +30416,7 @@ function renderBar(model) {
     animCss = wipe.css;
     open2 = `<g clip-path="url(#${wipe.clipId})">`;
     close = "</g>";
-  } else if (growMode) {
+  } else if (growMode && !frozenGrow) {
     animCss = `@media (prefers-reduced-motion:no-preference){.${growCls}{transform-box:fill-box;transform-origin:center bottom;}}`;
   }
   const bars = [];
@@ -29394,6 +30428,19 @@ function renderBar(model) {
     }
     const barH = Math.max(0, frame.baselineY - point2.y);
     const x2 = point2.x - barW / 2;
+    if (frozenGrow) {
+      const scale = barGrowScaleAt(
+        anim,
+        columnWindow(i, n, anim, timeline),
+        freezeProgress() ?? 1
+      );
+      const h = barH * scale;
+      const y2 = frame.baselineY - h;
+      bars.push(
+        `<rect class="sc-bar" x="${coord(x2)}" y="${coord(y2)}" width="${coord(barW)}" height="${coord(h)}" rx="1"/>`
+      );
+      continue;
+    }
     const barId = growMode ? `${growCls}-${i}` : "";
     const cls = growMode ? `sc-bar ${growCls} ${barId}` : "sc-bar";
     bars.push(
@@ -29412,7 +30459,7 @@ function renderBar(model) {
       );
     }
   }
-  if (growMode && growRules.length > 0) {
+  if (growMode && !frozenGrow && growRules.length > 0) {
     animCss += `@media (prefers-reduced-motion:no-preference){${growRules.join("")}}`;
   }
   const axis = renderYAxis(frame);
@@ -29452,8 +30499,8 @@ function line(points, curve) {
 function area(points, frame, curve) {
   return area_default().x((p) => p.x).y0(frame.baselineY).y1((p) => p.y).curve(curve)(points) ?? "";
 }
-function stroke(path4, name, width = 2) {
-  return `<path data-chart="${name}" d="${path4}" class="sc-ink" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
+function stroke(path5, name, width = 2) {
+  return `<path data-chart="${name}" d="${path5}" class="sc-ink" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
 }
 function singleDot(points) {
   const point2 = points.length === 1 ? points[0] : void 0;
@@ -29672,11 +30719,11 @@ function renderClusteredBar(model) {
 function renderNeon(model, stream) {
   const frame = buildFrame(model, { axis: true, compact: false, inset: 12 });
   const id = makeId(model);
-  const path4 = line(frame.points, chartCurve(model));
+  const path5 = line(frame.points, chartCurve(model));
   const halo = id("halo");
   const gradient = id("stream");
   const defs = `<filter id="${halo}" filterUnits="userSpaceOnUse" x="${coord(frame.plotLeft - 12)}" y="${coord(frame.plotTop - 12)}" width="${coord(frame.plotWidth + 24)}" height="${coord(frame.plotHeight + 24)}"><feGaussianBlur stdDeviation="3"/></filter>` + (stream ? `<linearGradient id="${gradient}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="sc-stream-stop" stop-opacity="0.55"/><stop offset="0.6" class="sc-stream-stop" stop-opacity="0.18"/><stop offset="1" class="sc-stream-stop" stop-opacity="0.02"/></linearGradient>` : "");
-  const plot = (stream ? `<path data-chart="neon-glow-stream-fill" d="${area(frame.points, frame, chartCurve(model))}" fill="url(#${gradient})"/>` : "") + `<g filter="url(#${halo})" opacity="0.55">${stroke(path4, "neon-halo", 8)}${singleDot(frame.points)}</g><g opacity="0.2">${stroke(path4, "neon-aura", 6)}</g>` + stroke(path4, stream ? "neon-glow-stream" : "neon-glow", 2) + singleDot(frame.points);
+  const plot = (stream ? `<path data-chart="neon-glow-stream-fill" d="${area(frame.points, frame, chartCurve(model))}" fill="url(#${gradient})"/>` : "") + `<g filter="url(#${halo})" opacity="0.55">${stroke(path5, "neon-halo", 8)}${singleDot(frame.points)}</g><g opacity="0.2">${stroke(path5, "neon-aura", 6)}</g>` + stroke(path5, stream ? "neon-glow-stream" : "neon-glow", 2) + singleDot(frame.points);
   return document(model, frame, {
     plot,
     defs,
@@ -29830,10 +30877,892 @@ function renderChart(input) {
   return { svg, bytes };
 }
 
+// src/renderers/gif.ts
+import { createRequire } from "node:module";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import * as path3 from "node:path";
+
+// node_modules/@resvg/resvg-wasm/index.mjs
+var wasm;
+var heap = new Array(128).fill(void 0);
+heap.push(void 0, null, true, false);
+var heap_next = heap.length;
+function addHeapObject(obj) {
+  if (heap_next === heap.length)
+    heap.push(heap.length + 1);
+  const idx = heap_next;
+  heap_next = heap[idx];
+  heap[idx] = obj;
+  return idx;
+}
+function getObject(idx) {
+  return heap[idx];
+}
+function dropObject(idx) {
+  if (idx < 132)
+    return;
+  heap[idx] = heap_next;
+  heap_next = idx;
+}
+function takeObject(idx) {
+  const ret = getObject(idx);
+  dropObject(idx);
+  return ret;
+}
+var WASM_VECTOR_LEN = 0;
+var cachedUint8Memory0 = null;
+function getUint8Memory0() {
+  if (cachedUint8Memory0 === null || cachedUint8Memory0.byteLength === 0) {
+    cachedUint8Memory0 = new Uint8Array(wasm.memory.buffer);
+  }
+  return cachedUint8Memory0;
+}
+var cachedTextEncoder = typeof TextEncoder !== "undefined" ? new TextEncoder("utf-8") : { encode: () => {
+  throw Error("TextEncoder not available");
+} };
+var encodeString = typeof cachedTextEncoder.encodeInto === "function" ? function(arg, view) {
+  return cachedTextEncoder.encodeInto(arg, view);
+} : function(arg, view) {
+  const buf = cachedTextEncoder.encode(arg);
+  view.set(buf);
+  return {
+    read: arg.length,
+    written: buf.length
+  };
+};
+function passStringToWasm0(arg, malloc, realloc) {
+  if (realloc === void 0) {
+    const buf = cachedTextEncoder.encode(arg);
+    const ptr2 = malloc(buf.length, 1) >>> 0;
+    getUint8Memory0().subarray(ptr2, ptr2 + buf.length).set(buf);
+    WASM_VECTOR_LEN = buf.length;
+    return ptr2;
+  }
+  let len = arg.length;
+  let ptr = malloc(len, 1) >>> 0;
+  const mem = getUint8Memory0();
+  let offset = 0;
+  for (; offset < len; offset++) {
+    const code = arg.charCodeAt(offset);
+    if (code > 127)
+      break;
+    mem[ptr + offset] = code;
+  }
+  if (offset !== len) {
+    if (offset !== 0) {
+      arg = arg.slice(offset);
+    }
+    ptr = realloc(ptr, len, len = offset + arg.length * 3, 1) >>> 0;
+    const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
+    const ret = encodeString(arg, view);
+    offset += ret.written;
+    ptr = realloc(ptr, len, offset, 1) >>> 0;
+  }
+  WASM_VECTOR_LEN = offset;
+  return ptr;
+}
+function isLikeNone(x2) {
+  return x2 === void 0 || x2 === null;
+}
+var cachedInt32Memory0 = null;
+function getInt32Memory0() {
+  if (cachedInt32Memory0 === null || cachedInt32Memory0.byteLength === 0) {
+    cachedInt32Memory0 = new Int32Array(wasm.memory.buffer);
+  }
+  return cachedInt32Memory0;
+}
+var cachedTextDecoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf-8", { ignoreBOM: true, fatal: true }) : { decode: () => {
+  throw Error("TextDecoder not available");
+} };
+if (typeof TextDecoder !== "undefined") {
+  cachedTextDecoder.decode();
+}
+function getStringFromWasm0(ptr, len) {
+  ptr = ptr >>> 0;
+  return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
+}
+function _assertClass(instance, klass) {
+  if (!(instance instanceof klass)) {
+    throw new Error(`expected instance of ${klass.name}`);
+  }
+  return instance.ptr;
+}
+function handleError(f, args) {
+  try {
+    return f.apply(this, args);
+  } catch (e) {
+    wasm.__wbindgen_exn_store(addHeapObject(e));
+  }
+}
+var BBoxFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
+}, unregister: () => {
+} } : new FinalizationRegistry((ptr) => wasm.__wbg_bbox_free(ptr >>> 0));
+var BBox = class _BBox {
+  static __wrap(ptr) {
+    ptr = ptr >>> 0;
+    const obj = Object.create(_BBox.prototype);
+    obj.__wbg_ptr = ptr;
+    BBoxFinalization.register(obj, obj.__wbg_ptr, obj);
+    return obj;
+  }
+  __destroy_into_raw() {
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
+    BBoxFinalization.unregister(this);
+    return ptr;
+  }
+  free() {
+    const ptr = this.__destroy_into_raw();
+    wasm.__wbg_bbox_free(ptr);
+  }
+  /**
+  * @returns {number}
+  */
+  get x() {
+    const ret = wasm.__wbg_get_bbox_x(this.__wbg_ptr);
+    return ret;
+  }
+  /**
+  * @param {number} arg0
+  */
+  set x(arg0) {
+    wasm.__wbg_set_bbox_x(this.__wbg_ptr, arg0);
+  }
+  /**
+  * @returns {number}
+  */
+  get y() {
+    const ret = wasm.__wbg_get_bbox_y(this.__wbg_ptr);
+    return ret;
+  }
+  /**
+  * @param {number} arg0
+  */
+  set y(arg0) {
+    wasm.__wbg_set_bbox_y(this.__wbg_ptr, arg0);
+  }
+  /**
+  * @returns {number}
+  */
+  get width() {
+    const ret = wasm.__wbg_get_bbox_width(this.__wbg_ptr);
+    return ret;
+  }
+  /**
+  * @param {number} arg0
+  */
+  set width(arg0) {
+    wasm.__wbg_set_bbox_width(this.__wbg_ptr, arg0);
+  }
+  /**
+  * @returns {number}
+  */
+  get height() {
+    const ret = wasm.__wbg_get_bbox_height(this.__wbg_ptr);
+    return ret;
+  }
+  /**
+  * @param {number} arg0
+  */
+  set height(arg0) {
+    wasm.__wbg_set_bbox_height(this.__wbg_ptr, arg0);
+  }
+};
+var RenderedImageFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
+}, unregister: () => {
+} } : new FinalizationRegistry((ptr) => wasm.__wbg_renderedimage_free(ptr >>> 0));
+var RenderedImage = class _RenderedImage {
+  static __wrap(ptr) {
+    ptr = ptr >>> 0;
+    const obj = Object.create(_RenderedImage.prototype);
+    obj.__wbg_ptr = ptr;
+    RenderedImageFinalization.register(obj, obj.__wbg_ptr, obj);
+    return obj;
+  }
+  __destroy_into_raw() {
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
+    RenderedImageFinalization.unregister(this);
+    return ptr;
+  }
+  free() {
+    const ptr = this.__destroy_into_raw();
+    wasm.__wbg_renderedimage_free(ptr);
+  }
+  /**
+  * Get the PNG width
+  * @returns {number}
+  */
+  get width() {
+    const ret = wasm.renderedimage_width(this.__wbg_ptr);
+    return ret >>> 0;
+  }
+  /**
+  * Get the PNG height
+  * @returns {number}
+  */
+  get height() {
+    const ret = wasm.renderedimage_height(this.__wbg_ptr);
+    return ret >>> 0;
+  }
+  /**
+  * Write the image data to Uint8Array
+  * @returns {Uint8Array}
+  */
+  asPng() {
+    try {
+      const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+      wasm.renderedimage_asPng(retptr, this.__wbg_ptr);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getInt32Memory0()[retptr / 4 + 1];
+      var r2 = getInt32Memory0()[retptr / 4 + 2];
+      if (r2) {
+        throw takeObject(r1);
+      }
+      return takeObject(r0);
+    } finally {
+      wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * Get the RGBA pixels of the image
+  * @returns {Uint8Array}
+  */
+  get pixels() {
+    const ret = wasm.renderedimage_pixels(this.__wbg_ptr);
+    return takeObject(ret);
+  }
+};
+var ResvgFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
+}, unregister: () => {
+} } : new FinalizationRegistry((ptr) => wasm.__wbg_resvg_free(ptr >>> 0));
+var Resvg = class {
+  __destroy_into_raw() {
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
+    ResvgFinalization.unregister(this);
+    return ptr;
+  }
+  free() {
+    const ptr = this.__destroy_into_raw();
+    wasm.__wbg_resvg_free(ptr);
+  }
+  /**
+  * @param {Uint8Array | string} svg
+  * @param {string | undefined} [options]
+  * @param {Array<any> | undefined} [custom_font_buffers]
+  */
+  constructor(svg, options, custom_font_buffers) {
+    try {
+      const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+      var ptr0 = isLikeNone(options) ? 0 : passStringToWasm0(options, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+      var len0 = WASM_VECTOR_LEN;
+      wasm.resvg_new(retptr, addHeapObject(svg), ptr0, len0, isLikeNone(custom_font_buffers) ? 0 : addHeapObject(custom_font_buffers));
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getInt32Memory0()[retptr / 4 + 1];
+      var r2 = getInt32Memory0()[retptr / 4 + 2];
+      if (r2) {
+        throw takeObject(r1);
+      }
+      this.__wbg_ptr = r0 >>> 0;
+      return this;
+    } finally {
+      wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * Get the SVG width
+  * @returns {number}
+  */
+  get width() {
+    const ret = wasm.resvg_width(this.__wbg_ptr);
+    return ret;
+  }
+  /**
+  * Get the SVG height
+  * @returns {number}
+  */
+  get height() {
+    const ret = wasm.resvg_height(this.__wbg_ptr);
+    return ret;
+  }
+  /**
+  * Renders an SVG in Wasm
+  * @returns {RenderedImage}
+  */
+  render() {
+    try {
+      const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+      wasm.resvg_render(retptr, this.__wbg_ptr);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getInt32Memory0()[retptr / 4 + 1];
+      var r2 = getInt32Memory0()[retptr / 4 + 2];
+      if (r2) {
+        throw takeObject(r1);
+      }
+      return RenderedImage.__wrap(r0);
+    } finally {
+      wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * Output usvg-simplified SVG string
+  * @returns {string}
+  */
+  toString() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+      const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+      wasm.resvg_toString(retptr, this.__wbg_ptr);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getInt32Memory0()[retptr / 4 + 1];
+      deferred1_0 = r0;
+      deferred1_1 = r1;
+      return getStringFromWasm0(r0, r1);
+    } finally {
+      wasm.__wbindgen_add_to_stack_pointer(16);
+      wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+  }
+  /**
+  * Calculate a maximum bounding box of all visible elements in this SVG.
+  *
+  * Note: path bounding box are approx values.
+  * @returns {BBox | undefined}
+  */
+  innerBBox() {
+    const ret = wasm.resvg_innerBBox(this.__wbg_ptr);
+    return ret === 0 ? void 0 : BBox.__wrap(ret);
+  }
+  /**
+  * Calculate a maximum bounding box of all visible elements in this SVG.
+  * This will first apply transform.
+  * Similar to `SVGGraphicsElement.getBBox()` DOM API.
+  * @returns {BBox | undefined}
+  */
+  getBBox() {
+    const ret = wasm.resvg_getBBox(this.__wbg_ptr);
+    return ret === 0 ? void 0 : BBox.__wrap(ret);
+  }
+  /**
+  * Use a given `BBox` to crop the svg. Currently this method simply changes
+  * the viewbox/size of the svg and do not move the elements for simplicity
+  * @param {BBox} bbox
+  */
+  cropByBBox(bbox) {
+    _assertClass(bbox, BBox);
+    wasm.resvg_cropByBBox(this.__wbg_ptr, bbox.__wbg_ptr);
+  }
+  /**
+  * @returns {Array<any>}
+  */
+  imagesToResolve() {
+    try {
+      const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+      wasm.resvg_imagesToResolve(retptr, this.__wbg_ptr);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getInt32Memory0()[retptr / 4 + 1];
+      var r2 = getInt32Memory0()[retptr / 4 + 2];
+      if (r2) {
+        throw takeObject(r1);
+      }
+      return takeObject(r0);
+    } finally {
+      wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+  }
+  /**
+  * @param {string} href
+  * @param {Uint8Array} buffer
+  */
+  resolveImage(href, buffer) {
+    try {
+      const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+      const ptr0 = passStringToWasm0(href, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+      const len0 = WASM_VECTOR_LEN;
+      wasm.resvg_resolveImage(retptr, this.__wbg_ptr, ptr0, len0, addHeapObject(buffer));
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getInt32Memory0()[retptr / 4 + 1];
+      if (r1) {
+        throw takeObject(r0);
+      }
+    } finally {
+      wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+  }
+};
+async function __wbg_load(module, imports) {
+  if (typeof Response === "function" && module instanceof Response) {
+    if (typeof WebAssembly.instantiateStreaming === "function") {
+      try {
+        return await WebAssembly.instantiateStreaming(module, imports);
+      } catch (e) {
+        if (module.headers.get("Content-Type") != "application/wasm") {
+          console.warn("`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n", e);
+        } else {
+          throw e;
+        }
+      }
+    }
+    const bytes = await module.arrayBuffer();
+    return await WebAssembly.instantiate(bytes, imports);
+  } else {
+    const instance = await WebAssembly.instantiate(module, imports);
+    if (instance instanceof WebAssembly.Instance) {
+      return { instance, module };
+    } else {
+      return instance;
+    }
+  }
+}
+function __wbg_get_imports() {
+  const imports = {};
+  imports.wbg = {};
+  imports.wbg.__wbg_new_28c511d9baebfa89 = function(arg0, arg1) {
+    const ret = new Error(getStringFromWasm0(arg0, arg1));
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbindgen_memory = function() {
+    const ret = wasm.memory;
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_buffer_12d079cc21e14bdb = function(arg0) {
+    const ret = getObject(arg0).buffer;
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_newwithbyteoffsetandlength_aa4a17c33a06e5cb = function(arg0, arg1, arg2) {
+    const ret = new Uint8Array(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
+    takeObject(arg0);
+  };
+  imports.wbg.__wbg_new_63b92bc8671ed464 = function(arg0) {
+    const ret = new Uint8Array(getObject(arg0));
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_values_839f3396d5aac002 = function(arg0) {
+    const ret = getObject(arg0).values();
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_next_196c84450b364254 = function() {
+    return handleError(function(arg0) {
+      const ret = getObject(arg0).next();
+      return addHeapObject(ret);
+    }, arguments);
+  };
+  imports.wbg.__wbg_done_298b57d23c0fc80c = function(arg0) {
+    const ret = getObject(arg0).done;
+    return ret;
+  };
+  imports.wbg.__wbg_value_d93c65011f51a456 = function(arg0) {
+    const ret = getObject(arg0).value;
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_instanceof_Uint8Array_2b3bbecd033d19f6 = function(arg0) {
+    let result;
+    try {
+      result = getObject(arg0) instanceof Uint8Array;
+    } catch (_) {
+      result = false;
+    }
+    const ret = result;
+    return ret;
+  };
+  imports.wbg.__wbindgen_string_get = function(arg0, arg1) {
+    const obj = getObject(arg1);
+    const ret = typeof obj === "string" ? obj : void 0;
+    var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len1 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len1;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
+  };
+  imports.wbg.__wbg_new_16b304a2cfa7ff4a = function() {
+    const ret = new Array();
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
+    const ret = getStringFromWasm0(arg0, arg1);
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_push_a5b05aedc7234f9f = function(arg0, arg1) {
+    const ret = getObject(arg0).push(getObject(arg1));
+    return ret;
+  };
+  imports.wbg.__wbg_length_c20a40f15020d68a = function(arg0) {
+    const ret = getObject(arg0).length;
+    return ret;
+  };
+  imports.wbg.__wbg_set_a47bac70306a19a7 = function(arg0, arg1, arg2) {
+    getObject(arg0).set(getObject(arg1), arg2 >>> 0);
+  };
+  imports.wbg.__wbindgen_throw = function(arg0, arg1) {
+    throw new Error(getStringFromWasm0(arg0, arg1));
+  };
+  return imports;
+}
+function __wbg_init_memory(imports, maybe_memory) {
+}
+function __wbg_finalize_init(instance, module) {
+  wasm = instance.exports;
+  __wbg_init.__wbindgen_wasm_module = module;
+  cachedInt32Memory0 = null;
+  cachedUint8Memory0 = null;
+  return wasm;
+}
+async function __wbg_init(input) {
+  if (wasm !== void 0)
+    return wasm;
+  if (typeof input === "undefined") {
+    input = new URL("index_bg.wasm", void 0);
+  }
+  const imports = __wbg_get_imports();
+  if (typeof input === "string" || typeof Request === "function" && input instanceof Request || typeof URL === "function" && input instanceof URL) {
+    input = fetch(input);
+  }
+  __wbg_init_memory(imports);
+  const { instance, module } = await __wbg_load(await input, imports);
+  return __wbg_finalize_init(instance, module);
+}
+var dist_default = __wbg_init;
+var initialized = false;
+var initWasm = async (module_or_path) => {
+  if (initialized) {
+    throw new Error("Already initialized. The `initWasm()` function can be used only once.");
+  }
+  await dist_default(await module_or_path);
+  initialized = true;
+};
+var Resvg2 = class extends Resvg {
+  /**
+   * @param {Uint8Array | string} svg
+   * @param {ResvgRenderOptions | undefined} options
+   */
+  constructor(svg, options) {
+    if (!initialized)
+      throw new Error("Wasm has not been initialized. Call `initWasm()` function.");
+    const font = options?.font;
+    if (!!font && isCustomFontsOptions(font)) {
+      const serializableOptions = {
+        ...options,
+        font: {
+          ...font,
+          fontBuffers: void 0
+        }
+      };
+      super(svg, JSON.stringify(serializableOptions), font.fontBuffers);
+    } else {
+      super(svg, JSON.stringify(options));
+    }
+  }
+};
+function isCustomFontsOptions(value) {
+  return Object.prototype.hasOwnProperty.call(value, "fontBuffers");
+}
+
+// src/renderers/gif.ts
+var import_gifenc = __toESM(require_gifenc(), 1);
+
+// src/renderers/frames.ts
+var DEFAULT_FPS = 20;
+var MIN_FPS = 1;
+var MAX_FPS = 50;
+var STATIC_DELAY_MS = 2e3;
+function frameTheme(model) {
+  return model.config.theme === "dark" ? "dark" : "light";
+}
+function buildFrameSequence(input, options = {}) {
+  const model = normalizeChartModel(input);
+  const theme = frameTheme(model);
+  const anim = model.config.animation;
+  if (model.config.style !== "contributions") {
+    return buildGenericSequence(model, theme, options);
+  }
+  const geo = contribGeometry(model);
+  const heights = [];
+  for (let j = 0; j < geo.cols; j += 1) {
+    const bucket = model.buckets[j];
+    heights.push(bucket ? columnHeight(model, bucket.cumulative) : 0);
+  }
+  if (anim.mode === "none") {
+    const svg = renderContributions(model, { exposed: heights });
+    return { frames: [{ svg, delayMs: STATIC_DELAY_MS }], loop: false, theme };
+  }
+  const fps = clampFps(options.fps ?? DEFAULT_FPS);
+  const timeline = resolveTimeline(anim);
+  const schedules = [];
+  for (let j = 0; j < geo.cols; j += 1) {
+    const h = heights[j] ?? 0;
+    if (h <= 0) {
+      schedules.push([{ pct: 0, exposed: 0 }]);
+      continue;
+    }
+    const window = columnWindow(j, geo.cols, anim, timeline);
+    schedules.push(
+      columnSchedule({
+        style: anim.style,
+        easing: anim.easing,
+        height: h,
+        index: j,
+        columns: geo.cols,
+        rows: geo.rows,
+        window,
+        cascadeColumnFrac: 0,
+        cascadeRowFrac: 0
+      })
+    );
+  }
+  const loop = anim.mode === "loop";
+  const delayMs = Math.max(20, Math.round(1e3 / fps));
+  const frame = (pct, holdMs = delayMs) => ({
+    // `pct` is a position on the cycle (0–100); the freeze context expresses it
+    // as a fraction so `renderHeader` bakes the `animate_total` reveal opacity at
+    // the same cycle position the CSS keyframes would (contributions frames use
+    // their own exposed-cell path and never enter the generic freeze branch).
+    svg: withFreeze(
+      pct / 100,
+      () => renderContributions(model, {
+        exposed: schedules.map((schedule) => exposedAt(schedule, pct))
+      })
+    ),
+    delayMs: holdMs
+  });
+  const frames = [];
+  if (loop) {
+    const span2 = timeline.cycleSeconds;
+    const frameCount = Math.max(2, Math.round(span2 * fps));
+    for (let i = 0; i < frameCount; i += 1) {
+      const seconds2 = i / frameCount * span2;
+      frames.push(frame(seconds2 / timeline.cycleSeconds * 100));
+    }
+    return { frames, loop, theme };
+  }
+  const span = anim.delaySeconds + timeline.cycleSeconds;
+  const buildFrames = Math.max(1, Math.round(span * fps));
+  for (let i = 0; i < buildFrames; i += 1) {
+    const seconds2 = i / buildFrames * span;
+    frames.push(frame(cyclePercentOnce(seconds2, anim.delaySeconds, timeline)));
+  }
+  frames.push({
+    svg: withFreeze(1, () => renderContributions(model, { exposed: heights })),
+    delayMs: STATIC_DELAY_MS
+  });
+  return { frames, loop, theme };
+}
+function buildGenericSequence(model, theme, options) {
+  const anim = model.config.animation;
+  const renderer = getRenderer(model.config.style);
+  const still = staticModel(model);
+  if (anim.mode === "none") {
+    return {
+      frames: [{ svg: renderer(still), delayMs: STATIC_DELAY_MS }],
+      loop: false,
+      theme
+    };
+  }
+  const fps = clampFps(options.fps ?? DEFAULT_FPS);
+  const timeline = resolveTimeline(anim);
+  const delayMs = Math.max(20, Math.round(1e3 / fps));
+  const loop = anim.mode === "loop";
+  const frozen = (cycleFrac) => ({
+    svg: withFreeze(cycleFrac, () => renderer(model)),
+    delayMs
+  });
+  const frames = [];
+  if (loop) {
+    const span2 = timeline.cycleSeconds;
+    const frameCount = Math.max(2, Math.round(span2 * fps));
+    for (let i = 0; i < frameCount; i += 1) {
+      const seconds2 = i / frameCount * span2;
+      frames.push(frozen(seconds2 / timeline.cycleSeconds));
+    }
+    return { frames, loop, theme };
+  }
+  const span = anim.delaySeconds + timeline.cycleSeconds;
+  const buildFrames = Math.max(1, Math.round(span * fps));
+  for (let i = 0; i < buildFrames; i += 1) {
+    const seconds2 = i / buildFrames * span;
+    const effective = seconds2 - anim.delaySeconds;
+    const cycleFrac = effective <= 0 ? 0 : Math.min(1, effective / timeline.cycleSeconds);
+    frames.push(frozen(cycleFrac));
+  }
+  frames.push({ svg: renderer(still), delayMs: STATIC_DELAY_MS });
+  return { frames, loop, theme };
+}
+function staticModel(model) {
+  return {
+    ...model,
+    config: {
+      ...model.config,
+      animation: { ...model.config.animation, mode: "none" }
+    }
+  };
+}
+function cyclePercentOnce(seconds2, delaySeconds, timeline) {
+  const effective = seconds2 - delaySeconds;
+  if (effective <= 0) {
+    return 0;
+  }
+  const fraction = Math.min(1, effective / timeline.cycleSeconds);
+  return fraction * 100;
+}
+function exposedAt(schedule, pct) {
+  let exposed = 0;
+  for (const step of schedule) {
+    if (step.pct <= pct) {
+      exposed = step.exposed;
+    } else {
+      break;
+    }
+  }
+  return exposed;
+}
+function clampFps(fps) {
+  if (!Number.isFinite(fps)) {
+    return DEFAULT_FPS;
+  }
+  return Math.min(MAX_FPS, Math.max(MIN_FPS, Math.round(fps)));
+}
+
+// src/renderers/gif.ts
+var THEME_BACKGROUND = {
+  light: "#ffffff",
+  dark: "#0d1117"
+};
+var FALLBACK_FONT_FAMILY = "Roboto";
+var MIN_WIDTH = 100;
+var MAX_WIDTH = 2400;
+var wasmReady = null;
+var fontBuffer = null;
+var symbolFontBuffer = null;
+async function renderChartGif(input, options = {}) {
+  const model = normalizeChartModel(input);
+  await ensureRuntime();
+  const sequence = buildFrameSequence(model, options);
+  const background = resolveBackground2(model, sequence.theme);
+  const targetWidth = clampWidth(options.width ?? model.config.width);
+  const fontBuffers = [fontBuffer, symbolFontBuffer].filter(
+    (buffer2) => buffer2 !== null
+  );
+  const rendered = sequence.frames.map((frame) => {
+    const flattened = flattenThemeVars(frame.svg, model, sequence.theme);
+    const resvg = new Resvg2(flattened, {
+      background,
+      fitTo: { mode: "width", value: targetWidth },
+      font: fontBuffers.length > 0 ? {
+        fontBuffers,
+        defaultFontFamily: FALLBACK_FONT_FAMILY,
+        loadSystemFonts: false
+      } : { loadSystemFonts: false }
+    });
+    const image = resvg.render();
+    const pixels = new Uint8Array(image.pixels);
+    const result = {
+      pixels,
+      width: image.width,
+      height: image.height,
+      delayMs: frame.delayMs
+    };
+    image.free();
+    resvg.free();
+    return result;
+  });
+  const first = rendered[0];
+  if (!first) {
+    throw new Error("GIF rendering produced no frames.");
+  }
+  const { width, height } = first;
+  const paletteSource = rendered[rendered.length - 1] ?? first;
+  const palette = (0, import_gifenc.quantize)(paletteSource.pixels, 256, { format: "rgb565" });
+  const encoder = (0, import_gifenc.GIFEncoder)();
+  rendered.forEach((frame, index) => {
+    const indexed = (0, import_gifenc.applyPalette)(frame.pixels, palette, "rgb565");
+    encoder.writeFrame(indexed, frame.width, frame.height, {
+      ...index === 0 ? { palette, repeat: sequence.loop ? 0 : -1, first: true } : {},
+      delay: frame.delayMs
+    });
+  });
+  encoder.finish();
+  const buffer = encoder.bytes();
+  return {
+    buffer,
+    width,
+    height,
+    frameCount: rendered.length,
+    loop: sequence.loop,
+    bytes: buffer.byteLength
+  };
+}
+function resolveBackground2(model, theme) {
+  return model.config.background === "transparent" ? THEME_BACKGROUND[theme] : model.config.background;
+}
+function clampWidth(width) {
+  if (!Number.isFinite(width)) {
+    return MIN_WIDTH;
+  }
+  return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, Math.round(width)));
+}
+async function ensureRuntime() {
+  if (!wasmReady) {
+    wasmReady = loadWasm();
+  }
+  await wasmReady;
+}
+async function loadWasm() {
+  const wasm2 = await loadAsset(
+    ["resvg.wasm"],
+    () => resolveFromNodeModules("@resvg/resvg-wasm", "index_bg.wasm")
+  );
+  await initWasm(wasm2);
+  fontBuffer = await loadAsset(
+    [
+      "roboto.ttf",
+      "../assets/fonts/Roboto-Regular.ttf",
+      "../../assets/fonts/Roboto-Regular.ttf"
+    ],
+    () => void 0
+  ).catch(() => null);
+  symbolFontBuffer = await loadAsset(
+    [
+      "symbols.ttf",
+      "../assets/fonts/StarChartSymbols-Regular.ttf",
+      "../../assets/fonts/StarChartSymbols-Regular.ttf"
+    ],
+    () => void 0
+  ).catch(() => null);
+}
+async function loadAsset(relativePaths, fallback) {
+  const here = path3.dirname(fileURLToPath(import.meta.url));
+  const candidates = relativePaths.map((rel) => path3.resolve(here, rel));
+  const extra = fallback();
+  if (extra) {
+    candidates.push(extra);
+  }
+  for (const candidate of candidates) {
+    try {
+      return await readFile(candidate);
+    } catch {
+    }
+  }
+  throw new Error(
+    `Could not locate a required GIF asset (tried: ${candidates.join(", ")}).`
+  );
+}
+function resolveFromNodeModules(pkg, file) {
+  try {
+    const require2 = createRequire(import.meta.url);
+    return require2.resolve(pkg + "/" + file);
+  } catch {
+    return void 0;
+  }
+}
+
 // src/utils/write.ts
 import * as fs3 from "node:fs";
 import * as fsp from "node:fs/promises";
-import * as path3 from "node:path";
+import * as path4 from "node:path";
 async function writeChartFiles(files, options) {
   const syncFs = options.fsImpl ?? fs3;
   const asyncFs = options.fspImpl ?? fsp;
@@ -29862,7 +31791,7 @@ async function writeChartFiles(files, options) {
         continue;
       }
       await asyncFs.mkdir(plan.dir, { recursive: true });
-      const tempPath = path3.join(
+      const tempPath = path4.join(
         plan.dir,
         `.star-chart-${process.pid}-${Date.now()}-${staged.length}.tmp`
       );
@@ -29888,9 +31817,9 @@ async function writeChartFiles(files, options) {
     }
     const renamed = [];
     for (const entry of staged) {
-      const tempReal = syncFs.realpathSync(path3.dirname(entry.tempPath));
+      const tempReal = syncFs.realpathSync(path4.dirname(entry.tempPath));
       if (!containedIn(
-        path3.join(tempReal, path3.basename(entry.tempPath)),
+        path4.join(tempReal, path4.basename(entry.tempPath)),
         workspaceReal
       )) {
         throw new Error("Temp file escaped the workspace during write.");
@@ -29925,16 +31854,16 @@ async function writeChartFiles(files, options) {
 }
 function prepare(file, workspaceReal, syncFs) {
   const relativePath = validateOutputPath(file.path);
-  const absoluteTarget = path3.resolve(workspaceReal, relativePath);
+  const absoluteTarget = path4.resolve(workspaceReal, relativePath);
   if (!containedIn(absoluteTarget, workspaceReal)) {
     throw new Error("Resolved output path escapes the workspace root.");
   }
-  const dir = path3.dirname(absoluteTarget);
-  const relDir = path3.relative(workspaceReal, dir);
-  const dirSegments = relDir.length > 0 ? relDir.split(path3.sep) : [];
+  const dir = path4.dirname(absoluteTarget);
+  const relDir = path4.relative(workspaceReal, dir);
+  const dirSegments = relDir.length > 0 ? relDir.split(path4.sep) : [];
   let cursor = workspaceReal;
   for (const segment of dirSegments) {
-    cursor = path3.join(cursor, segment);
+    cursor = path4.join(cursor, segment);
     let stat2;
     try {
       stat2 = syncFs.lstatSync(cursor);
@@ -29977,7 +31906,7 @@ function prepare(file, workspaceReal, syncFs) {
       existingBytes = void 0;
     }
   }
-  const nextBytes = Buffer.from(file.content, "utf8");
+  const nextBytes = toBytes(file.content);
   const changed = !existingBytes || !existingBytes.equals(nextBytes);
   return {
     absolutePath: absoluteTarget,
@@ -30007,8 +31936,11 @@ async function rollback(renamed, cause, asyncFs) {
   return new Error(message, { cause });
 }
 function containedIn(child, parent) {
-  const rel = path3.relative(parent, child);
-  return rel === "" || !rel.startsWith("..") && !path3.isAbsolute(rel);
+  const rel = path4.relative(parent, child);
+  return rel === "" || !rel.startsWith("..") && !path4.isAbsolute(rel);
+}
+function toBytes(content) {
+  return typeof content === "string" ? Buffer.from(content, "utf8") : Buffer.from(content.buffer, content.byteOffset, content.byteLength);
 }
 function describeError(error2) {
   return error2 instanceof Error ? error2.message : String(error2);
@@ -30152,7 +32084,7 @@ async function run(deps) {
         "Chart includes weeks with no recorded data (shown as zero additions)."
       );
     }
-    const files = renderFiles(model, config, deps);
+    const files = await renderFiles(model, config, deps);
     const results = await writeChartFiles(files, {
       workspace: deps.workspace,
       fsImpl: deps.fsImpl,
@@ -30218,21 +32150,34 @@ function describeRepositoryFailure(error2, fullName) {
   const message = typeof error2 === "string" && error2 !== "" ? error2 : "unknown error";
   return new Error(`${fullName}: ${message}`, { cause: error2 });
 }
-function renderFiles(model, config, deps) {
+async function renderFiles(model, config, deps) {
   if (!configDualTheme(config)) {
-    return [renderOne(model, config.output, config.theme, deps)];
+    return [await renderOne(model, config.output, config.theme, deps)];
   }
   const paths = deriveDualPaths(config.output);
   return [
-    renderOne(model, paths.light, "light", deps),
-    renderOne(model, paths.dark, "dark", deps)
+    await renderOne(model, paths.light, "light", deps),
+    await renderOne(model, paths.dark, "dark", deps)
   ];
 }
-function renderOne(model, outputPath, theme, deps) {
+var GIF_WARN_BYTES = 5 * 1024 * 1024;
+async function renderOne(model, outputPath, theme, deps) {
   const themed = model.config.theme === theme && model.config.output === outputPath ? model : {
     ...model,
     config: { ...model.config, theme, output: outputPath }
   };
+  if (outputFormat(outputPath) === "gif") {
+    const gif = await renderChartGif(themed);
+    deps.info(
+      `Rendered ${outputPath}: ${gif.frameCount} frame(s), ${gif.width}x${gif.height}, ${gif.bytes} bytes.`
+    );
+    if (gif.bytes > GIF_WARN_BYTES) {
+      deps.warning(
+        `Animated GIF ${outputPath} is ${gif.bytes} bytes (soft limit ${GIF_WARN_BYTES}). Reduce width, columns or animation_duration.`
+      );
+    }
+    return { path: outputPath, content: gif.buffer, bytes: gif.bytes };
+  }
   const { svg, bytes } = renderChart(themed);
   if (themed.config.animation.mode !== "none") {
     if (bytes > SIZE_LIMITS.animatedWarn) {

@@ -6,6 +6,8 @@ import {
   aggregateMetadata,
   normalizeHistory,
   parseInputs,
+  buildChartModel,
+  renderChartGif,
   renderStarChart,
   renderMultiRepositoryStarChart,
 } from '../dist/lib.js';
@@ -326,6 +328,28 @@ for (const [name, inputs, source = SINGLE] of jobs) {
   );
 }
 console.log(`Generated ${jobs.length} synthetic example SVGs for docs/.`);
+
+// Root README GIF: a raster rendering of the light animated contributions hero
+// (`contributions-animated-once-light`), with the shading legend row hidden via
+// `show_legend: false`. The committed SVG examples and the site keep their
+// legends; this is the single showcase GIF referenced from the README.
+const { config: leeConfig } = parseInputs({
+  repository: 'leereilly/star-chart',
+  style: 'contributions',
+  theme: 'light',
+  animation: 'once',
+  show_legend: 'false',
+});
+const leeModel = buildChartModel(leeConfig, metadata, SINGLE.history, {
+  asOf: AS_OF,
+});
+const leeGif = await renderChartGif(leeModel, { width: 720, fps: 16 });
+writeFileSync(join(root, 'lee.gif'), leeGif.buffer);
+console.log(
+  `Generated lee.gif (${leeGif.frameCount} frames, ` +
+    `${leeGif.width}x${leeGif.height}, ` +
+    `${(leeGif.bytes / 1024).toFixed(0)} KB).`,
+);
 
 // Sanity: ensure every example is non-empty and starts with <svg.
 for (const [name] of jobs) {

@@ -14,6 +14,7 @@ import { escapeText, escapeAttr, idFactory } from '../utils/svg.js';
 import { formatDate } from '../utils/dates.js';
 import { compactNumber, withCommas } from '../utils/numbers.js';
 import { resolveTimeline, progressKeyframes } from './animation.js';
+import { freezeProgress, totalRevealOpacityAt } from './freeze.js';
 
 export class RenderError extends Error {
   constructor(message: string) {
@@ -275,6 +276,36 @@ export function makeId(model: ChartModel): (name: string) => string {
   return idFactory(`sc-${model.config.style}`);
 }
 
+/**
+ * Resolves the concrete CSS custom-property values for one theme, applying any
+ * palette overrides. Used to flatten `var(--sc-…)` references when rasterizing
+ * to formats (such as GIF) whose renderers do not evaluate CSS variables.
+ */
+export function resolveThemeVars(
+  model: ChartModel,
+  theme: 'light' | 'dark',
+): Record<string, string> {
+  return themeVarValues(theme, model);
+}
+
+/**
+ * Rewrites every `var(--sc-…)` reference in an SVG string to the concrete
+ * colour for `theme`. Raster back-ends (resvg) ignore CSS custom properties,
+ * so a themed frame must resolve them ahead of time. Unknown variables collapse
+ * to `none` so a stray reference never paints an unintended colour.
+ */
+export function flattenThemeVars(
+  svg: string,
+  model: ChartModel,
+  theme: 'light' | 'dark',
+): string {
+  const values = themeVarValues(theme, model);
+  return svg.replace(
+    /var\((--sc-[a-z0-9]+)\)/g,
+    (_match, name: string) => values[name] ?? 'none',
+  );
+}
+
 export function chartTitle(model: ChartModel): string {
   return model.config.title ?? model.metadata.fullName;
 }
@@ -408,11 +439,19 @@ export function renderHeader(model: ChartModel, layout: Layout): string {
       const isTotal = line.className.includes('sc-total');
       const shift = isTotal && change?.y === line.y ? change.width + 10 : 0;
       const x = line.right ? layout.width - layout.padX - shift : layout.padX;
-      const reveal =
+      const revealEligible =
         isTotal &&
         model.config.animation.animateTotal &&
-        model.config.animation.mode !== 'none'
-          ? ` ${makeId(model)('total')}`
+        model.config.animation.mode !== 'none';
+      const frozen = freezeProgress();
+      // A frozen render bakes the reveal's current opacity as an attribute
+      // (resvg cannot run the fade keyframes); the live SVG keeps the class the
+      // `totalRevealCss` keyframes target.
+      const reveal =
+        revealEligible && frozen === null ? ` ${makeId(model)('total')}` : '';
+      const frozenOpacity =
+        revealEligible && frozen !== null
+          ? ` opacity="${totalRevealOpacityAt(resolveTimeline(model.config.animation), frozen).toFixed(3)}"`
           : '';
       const text = isTotal
         ? `<tspan class="sc-a">★</tspan>${escapeText(line.text.slice(1))}`
@@ -420,6 +459,7 @@ export function renderHeader(model: ChartModel, layout: Layout): string {
       return (
         `<text x="${x}" y="${line.y}" class="${line.className}${reveal}" ` +
         `font-size="${line.size}" textLength="${line.width}" lengthAdjust="spacingAndGlyphs"` +
+        frozenOpacity +
         (line.right ? ' text-anchor="end"' : '') +
         (line.className.includes('sc-title') ? ' font-weight="600"' : '') +
         `>${text}</text>`
@@ -433,6 +473,9 @@ export function totalRevealCss(model: ChartModel): string {
   const anim = model.config.animation;
   if (!model.config.showTotal || !anim.animateTotal || anim.mode === 'none')
     return '';
+  // Frozen renders bake the reveal opacity onto the total text itself, so the
+  // keyframes would be dead weight (and resvg ignores them anyway).
+  if (freezeProgress() !== null) return '';
   const id = makeId(model);
   const timeline = resolveTimeline(anim);
   const endFrac = timeline.buildSeconds / timeline.cycleSeconds;

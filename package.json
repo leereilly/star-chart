@@ -45,10 +45,12 @@
   "dependencies": {
     "@actions/core": "^3.0.1",
     "@actions/github": "^9.1.1",
+    "@resvg/resvg-wasm": "^2.6.2",
     "d3-array": "^3.2.4",
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
-    "d3-time-format": "^4.1.0"
+    "d3-time-format": "^4.1.0",
+    "gifenc": "^1.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

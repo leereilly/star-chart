@@ -35,6 +35,14 @@ import {
   resolveTimeline,
   type Timeline,
 } from './animation.js';
+import {
+  barGrowScaleAt,
+  freezeProgress,
+  isFrozen,
+  strokeDrawFractionAt,
+  svgPathLength,
+  wipeScaleAt,
+} from './freeze.js';
 
 export function chartCurve(model: ChartModel): CurveFactory {
   // Empty sub-week slots carry the last observation: do not interpolate growth
@@ -89,11 +97,33 @@ export function wipeClip(
 ): { clipId: string; defs: string; css: string } {
   const clipId = id('wipe');
   const wipeCls = id('wipefill');
+  const rectX = frame.plotLeft - padding;
+  const rectY = frame.plotTop - Math.max(3, padding);
+  const rectW = frame.plotWidth + padding * 2;
+  const rectH = frame.plotHeight + Math.max(3, padding) * 2;
+  const simultaneous = anim.direction === 'simultaneous';
+
+  // Frozen render: bake the wipe's current reveal directly into the clip rect
+  // geometry (resvg ignores the CSS transform), leaving the caller's
+  // `<g clip-path>` wrapper untouched. Horizontal wipes shrink width from the
+  // left edge; a simultaneous (vertical) wipe shrinks height from the bottom.
+  const frozen = freezeProgress();
+  if (frozen !== null) {
+    const scale = wipeScaleAt(anim, timeline, frame.points.length, frozen);
+    const x = rectX;
+    const w = simultaneous ? rectW : rectW * scale;
+    const h = simultaneous ? rectH * scale : rectH;
+    const y = simultaneous ? rectY + rectH - h : rectY;
+    const defs =
+      `<clipPath id="${clipId}"><rect x="${coord(x)}" y="${coord(y)}" ` +
+      `width="${coord(w)}" height="${coord(h)}"/></clipPath>`;
+    return { clipId, defs, css: '' };
+  }
+
   const defs =
     `<clipPath id="${clipId}"><rect class="${wipeCls}" ` +
-    `x="${coord(frame.plotLeft - padding)}" y="${coord(frame.plotTop - Math.max(3, padding))}" ` +
-    `width="${coord(frame.plotWidth + padding * 2)}" height="${coord(frame.plotHeight + Math.max(3, padding) * 2)}"/></clipPath>`;
-  const simultaneous = anim.direction === 'simultaneous';
+    `x="${coord(rectX)}" y="${coord(rectY)}" ` +
+    `width="${coord(rectW)}" height="${coord(rectH)}"/></clipPath>`;
   const timing =
     anim.style === 'cascade'
       ? `steps(${Math.max(1, frame.points.length)},end)`
@@ -194,18 +224,32 @@ function renderLineLike(
       anim.direction === 'chronological' &&
       !single
     ) {
-      const kf = id('draw');
-      const drawCls = id('drawline');
-      pathAttrs = ` pathLength="1" class="sc-stroke ${drawCls}"`;
-      animCss =
-        progressKeyframes(kf, 'stroke-dashoffset', '1', '0', {
-          startFrac: 0,
-          endFrac: timeline.buildSeconds / timeline.cycleSeconds,
-        }) +
-        `@media (prefers-reduced-motion:no-preference){` +
-        `.${drawCls}{stroke-dasharray:1;stroke-dashoffset:0;` +
-        `animation:${kf} ${timeline.cycleSeconds}s ${anim.easing} ` +
-        `${timeline.delaySeconds}s ${timeline.iteration} both;}}`;
+      if (isFrozen()) {
+        // Bake the stroke draw as an absolute dash: resvg ignores `pathLength`,
+        // so convert the eased draw fraction into a concrete dash length over
+        // the path's measured length (dash then a gap ≥ the full path).
+        const eased = strokeDrawFractionAt(
+          anim,
+          timeline,
+          freezeProgress() ?? 1,
+        );
+        const total = svgPathLength(path);
+        const drawn = total * eased;
+        pathAttrs = ` class="sc-stroke" stroke-dasharray="${coord(drawn)} ${coord(total)}"`;
+      } else {
+        const kf = id('draw');
+        const drawCls = id('drawline');
+        pathAttrs = ` pathLength="1" class="sc-stroke ${drawCls}"`;
+        animCss =
+          progressKeyframes(kf, 'stroke-dashoffset', '1', '0', {
+            startFrac: 0,
+            endFrac: timeline.buildSeconds / timeline.cycleSeconds,
+          }) +
+          `@media (prefers-reduced-motion:no-preference){` +
+          `.${drawCls}{stroke-dasharray:1;stroke-dashoffset:0;` +
+          `animation:${kf} ${timeline.cycleSeconds}s ${anim.easing} ` +
+          `${timeline.delaySeconds}s ${timeline.iteration} both;}}`;
+      }
     } else {
       const wipe = wipeClip(frame, id, anim, timeline);
       wipeDefs = wipe.defs;
@@ -324,6 +368,7 @@ export function renderBar(model: ChartModel): string {
 
   const growMode = animEnabled && anim.style === 'grow';
   const wipeMode = animEnabled && anim.style !== 'grow';
+  const frozenGrow = growMode && isFrozen();
 
   let wipeDefs = '';
   let animCss = '';
@@ -336,7 +381,7 @@ export function renderBar(model: ChartModel): string {
     animCss = wipe.css;
     open = `<g clip-path="url(#${wipe.clipId})">`;
     close = '</g>';
-  } else if (growMode) {
+  } else if (growMode && !frozenGrow) {
     animCss =
       `@media (prefers-reduced-motion:no-preference){` +
       `.${growCls}{transform-box:fill-box;transform-origin:center bottom;` +
@@ -352,6 +397,23 @@ export function renderBar(model: ChartModel): string {
     }
     const barH = Math.max(0, frame.baselineY - point.y);
     const x = point.x - barW / 2;
+    if (frozenGrow) {
+      // Bake this bar's grow into static geometry, scaled from the baseline
+      // (matching `transform-origin:center bottom`); resvg ignores the CSS
+      // transform that would otherwise drive it.
+      const scale = barGrowScaleAt(
+        anim,
+        columnWindow(i, n, anim, timeline),
+        freezeProgress() ?? 1,
+      );
+      const h = barH * scale;
+      const y = frame.baselineY - h;
+      bars.push(
+        `<rect class="sc-bar" x="${coord(x)}" y="${coord(y)}" ` +
+          `width="${coord(barW)}" height="${coord(h)}" rx="1"/>`,
+      );
+      continue;
+    }
     const barId = growMode ? `${growCls}-${i}` : '';
     const cls = growMode ? `sc-bar ${growCls} ${barId}` : 'sc-bar';
     bars.push(
@@ -372,7 +434,7 @@ export function renderBar(model: ChartModel): string {
       );
     }
   }
-  if (growMode && growRules.length > 0) {
+  if (growMode && !frozenGrow && growRules.length > 0) {
     animCss += `@media (prefers-reduced-motion:no-preference){${growRules.join('')}}`;
   }
 

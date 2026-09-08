@@ -13,7 +13,8 @@ import { fetchHistory } from './api/history.js';
 import { normalizeHistory } from './history/normalize.js';
 import { buildMultiRepositoryChartModel } from './history/multi.js';
 import { renderChart, SIZE_LIMITS } from './renderers/index.js';
-import { deriveDualPaths } from './utils/path.js';
+import { renderChartGif } from './renderers/gif.js';
+import { deriveDualPaths, outputFormat } from './utils/path.js';
 import { writeChartFiles, type ChartFile } from './utils/write.js';
 import { buildOutputs, outputEntries } from './outputs.js';
 import * as fs from 'node:fs';
@@ -128,7 +129,7 @@ export async function run(deps: RunDeps): Promise<ChartOutputs | null> {
       );
     }
 
-    const files = renderFiles(model, config, deps);
+    const files = await renderFiles(model, config, deps);
 
     const results = await writeChartFiles(files, {
       workspace: deps.workspace,
@@ -174,7 +175,6 @@ export async function run(deps: RunDeps): Promise<ChartOutputs | null> {
 interface RenderedFile extends ChartFile {
   readonly bytes: number;
 }
-
 /**
  * Fetches every repository through the same API flow, sharing one retry and
  * time budget. Requests are issued one repository at a time so a wide
@@ -230,30 +230,34 @@ function describeRepositoryFailure(error: unknown, fullName: string): Error {
 
 /**
  * Renders the model once per output file: a single file in the configured
- * theme, or a fixed light and a fixed dark file in dual mode.
+ * theme, or a fixed light and a fixed dark file in dual mode. The output
+ * extension selects the format—`.svg` vector or `.gif` raster animation.
  */
-function renderFiles(
+async function renderFiles(
   model: ChartModel,
   config: ChartConfig,
   deps: RunDeps,
-): RenderedFile[] {
+): Promise<RenderedFile[]> {
   if (!configDualTheme(config)) {
-    return [renderOne(model, config.output, config.theme, deps)];
+    return [await renderOne(model, config.output, config.theme, deps)];
   }
 
   const paths = deriveDualPaths(config.output);
   return [
-    renderOne(model, paths.light, 'light', deps),
-    renderOne(model, paths.dark, 'dark', deps),
+    await renderOne(model, paths.light, 'light', deps),
+    await renderOne(model, paths.dark, 'dark', deps),
   ];
 }
 
-function renderOne(
+/** Soft warning ceiling for an encoded GIF (bytes). */
+const GIF_WARN_BYTES = 5 * 1024 * 1024;
+
+async function renderOne(
   model: ChartModel,
   outputPath: string,
   theme: ChartConfig['theme'],
   deps: RunDeps,
-): RenderedFile {
+): Promise<RenderedFile> {
   const themed: ChartModel =
     model.config.theme === theme && model.config.output === outputPath
       ? model
@@ -261,6 +265,23 @@ function renderOne(
           ...model,
           config: { ...model.config, theme, output: outputPath },
         };
+
+  if (outputFormat(outputPath) === 'gif') {
+    const gif = await renderChartGif(themed);
+    deps.info(
+      `Rendered ${outputPath}: ${gif.frameCount} frame(s), ` +
+        `${gif.width}x${gif.height}, ${gif.bytes} bytes.`,
+    );
+    if (gif.bytes > GIF_WARN_BYTES) {
+      deps.warning(
+        `Animated GIF ${outputPath} is ${gif.bytes} bytes ` +
+          `(soft limit ${GIF_WARN_BYTES}). Reduce width, columns or ` +
+          'animation_duration.',
+      );
+    }
+    return { path: outputPath, content: gif.buffer, bytes: gif.bytes };
+  }
+
   const { svg, bytes } = renderChart(themed);
 
   if (themed.config.animation.mode !== 'none') {
