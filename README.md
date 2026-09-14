@@ -25,10 +25,6 @@ need a dashboard, third-party image host, or runtime JavaScript.
 
 ## 30-second setup
 
-Prefer a guided setup? The [minimal website](https://leereilly.net/star-chart/)
-accepts a repository name or GitHub URL and generates matching workflow and
-README snippets. Its previews are synthetic, not live star counts.
-
 Use the published [v0.2 release](https://github.com/leereilly/star-chart/releases/tag/v0.2):
 `uses: leereilly/star-chart@v0.2`. The tag includes the bundled action; no
 separate download, npm installation, or build step is needed in your workflow.
