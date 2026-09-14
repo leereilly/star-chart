@@ -260,7 +260,12 @@ describe('documentation website', () => {
   });
 
   it('defaults to animated contributions from day zero without changing action defaults', () => {
+    const workflow = parseYaml(
+      site.buildExample('acme/widgets', 'main').workflow,
+    );
     const inputs = workflowInputs();
+    expect(workflow.jobs.chart.steps[1].uses).toBe('leereilly/star-chart@v1');
+    expect(workflow.jobs.chart.steps[1].uses).not.toContain('@main');
     expect(inputs).toMatchObject({
       token: '${{ github.token }}',
       repository: 'acme/widgets',
@@ -527,12 +532,10 @@ describe('documentation website', () => {
     );
   });
 
-  it('shows an animated hero before configuration and an ungated full gallery', () => {
+  it('shows an animated hero before configuration without the examples gallery', () => {
     const document = page();
     const hero = document.getElementById('hero-preview');
-    const gallery = document.getElementById('example-gallery');
     expect(hero).not.toBeNull();
-    expect(gallery).not.toBeNull();
     expect(html.indexOf('id="hero-preview"')).toBeLessThan(
       html.indexOf('id="configure-title"'),
     );
@@ -540,39 +543,34 @@ describe('documentation website', () => {
       'samples/contributions-animated-once-light.svg',
     );
     expect(hero?.getAttribute('loading')).not.toBe('lazy');
-    for (const element of [hero, gallery]) {
-      for (let node = element; node; node = node.parentNode as typeof node) {
-        expect(node.hasAttribute?.('hidden')).not.toBe(true);
-        expect(node.getAttribute?.('id')).not.toBe('generated-examples');
-      }
+    for (let node = hero; node; node = node.parentNode as typeof node) {
+      expect(node.hasAttribute?.('hidden')).not.toBe(true);
+      expect(node.getAttribute?.('id')).not.toBe('generated-examples');
     }
-    const images = Array.from(gallery!.getElementsByTagName('img'));
-    const paths = new Set<string>();
-    for (const image of images) {
-      expect(image.getAttribute('loading')).toBe('lazy');
-      expect(image.getAttribute('alt')).toMatch(/synthetic/i);
-      expect(image.parentNode?.parentNode?.textContent?.trim()).not.toBe('');
-      for (const attribute of ['src', 'data-light-src', 'data-dark-src']) {
-        const path = image.getAttribute(attribute);
-        if (path) paths.add(path);
-      }
-    }
+    expect(document.getElementById('example-gallery')).toBeNull();
+    expect(document.getElementById('gallery-title')).toBeNull();
+    expect(html).not.toContain('href="#example-gallery"');
+    expect(html).not.toContain('Explore all examples');
+  });
+
+  it('ships the complete valid generated SVG catalog independently of the page', () => {
     const catalog = readdirSync('examples').filter((file) =>
       file.endsWith('.svg'),
     );
-    expect([...paths].sort()).toEqual(
-      catalog.map((file) => `samples/${file}`).sort(),
+    const samples = readdirSync('docs/samples').filter((file) =>
+      file.endsWith('.svg'),
     );
-    for (const path of paths) {
-      expect(path).toMatch(/^samples\/[\w-]+\.svg$/);
-      const svg = readFileSync(`docs/${path}`, 'utf8');
-      expect(checkSvg(svg).errors, path).toEqual([]);
+    expect(samples.sort()).toEqual(catalog.sort());
+    for (const file of samples) {
+      expect(file).toMatch(/^[\w-]+\.svg$/);
+      const svg = readFileSync(`docs/samples/${file}`, 'utf8');
+      expect(checkSvg(svg).errors, file).toEqual([]);
       expect(svg).toContain('Synthetic demonstration');
       expect(svg).not.toContain('leereilly/star-chart');
     }
   });
 
-  it('switches paired examples without changing fixed or automatic themes', () => {
+  it('switches the remaining theme-aware previews', () => {
     const document = page();
     const images = Array.from(document.getElementsByTagName('img'));
     const original = images.map((image) => image.getAttribute('src'));
@@ -587,18 +585,9 @@ describe('documentation website', () => {
         theme,
       );
     }
-    expect(document.getElementById('example-gallery')?.textContent).toContain(
-      'Fixed dark',
-    );
-    expect(document.getElementById('example-gallery')?.textContent).toContain(
-      'Fixed light',
-    );
-    expect(document.getElementById('example-gallery')?.textContent).toContain(
-      'system preference',
-    );
   });
 
-  it('keeps hero and gallery visible and themeable during invalid input', () => {
+  it('keeps the hero visible and themeable during invalid input', () => {
     const document = page();
     const listeners = new Map<string, () => void>();
     for (const element of Array.from(document.getElementsByTagName('*'))) {
@@ -629,12 +618,13 @@ describe('documentation website', () => {
       expect(document.getElementById('hero-preview')?.getAttribute('src')).toBe(
         `samples/contributions-animated-once-${theme}.svg`,
       );
-      for (const id of ['hero-preview', 'example-gallery']) {
-        expect(
-          (document.getElementById(id) as unknown as { hidden: boolean })
-            .hidden,
-        ).not.toBe(true);
-      }
+      expect(
+        (
+          document.getElementById('hero-preview') as unknown as {
+            hidden: boolean;
+          }
+        ).hidden,
+      ).not.toBe(true);
       expect(
         (
           document.getElementById('generated-examples') as unknown as {
@@ -825,6 +815,18 @@ describe('documentation website', () => {
     expect(html).toContain('Synthetic');
     expect(html).not.toContain('\u2014');
     expect(readFileSync('docs/site.mjs', 'utf8')).not.toContain('\u2014');
+  });
+
+  it('keeps home and theme controls without the small Source link', () => {
+    const document = page();
+    const header = document.getElementsByTagName('header')[0]!;
+    expect(
+      header.getElementsByTagName('a')[0]?.getAttribute('aria-label'),
+    ).toBe('Star Chart home');
+    expect(header.textContent).toContain('Star Chart');
+    expect(header.textContent).not.toContain('Source');
+    expect(header.getElementsByTagName('a')).toHaveLength(1);
+    expect(document.getElementById('theme-toggle')).not.toBeNull();
   });
 
   it('ships valid theme-matched previews with no repository-specific fixture branding', () => {

@@ -7,6 +7,7 @@ import {
   RenderError,
 } from '../src/renderers/contributions.js';
 import { buildChartModel } from '../src/history/model.js';
+import { buildFrameSequence } from '../src/renderers/frames.js';
 import type { ChartModel } from '../src/models/index.js';
 import {
   FIXED_NOW,
@@ -131,43 +132,66 @@ describe('renderContributions tip palette counts', () => {
     expect(countOccurrences(svg, '"sc-l2"')).toBe(0);
   });
 
-  it('makes the first column of a raised flat step solid darkest green', () => {
-    // Rendered heights are 1, 3, 3: column 1 connects the lower line to the
-    // two-column plateau shown in the reference geometry.
-    const svg = withoutLegend(render([1, 2, 0], { rows: '3' }));
-    const connector = renderedColumn(svg, 1);
+  it.each([
+    { adds: [1, 2, 0], heights: [1, 3, 3], rows: 3 },
+    { adds: [1, 3, 0, 0], heights: [1, 4, 4, 4], rows: 4 },
+    { adds: [1, 2, 0, 1, 0], heights: [1, 3, 3, 4, 4], rows: 4 },
+    { adds: [0, 1, 0, 2, 0], heights: [0, 1, 1, 4, 4], rows: 4 },
+    { adds: [1, 2, 1], heights: [1, 3, 4], rows: 4 },
+    { adds: [3, 0, 0], heights: [3, 3, 3], rows: 3 },
+  ])(
+    'shades every column by depth for heights $heights',
+    ({ adds, heights, rows }) => {
+      const svg = withoutLegend(render(adds, { rows: String(rows) }));
 
-    expect(countOccurrences(connector, 'class="sc-l4"')).toBe(3);
-    expect(connector).not.toContain('class="sc-l3"');
-    expect(connector).not.toContain('class="sc-l2"');
-    expect(connector).not.toContain('url(#sc-contributions-l1)');
-  });
+      for (const [index, height] of heights.entries()) {
+        if (height === 0) {
+          expect(svg).not.toContain(`class="sc-contributions-col${index}"`);
+          continue;
+        }
+        const column = renderedColumn(svg, index);
+        expect(countOccurrences(column, 'class="sc-l4"')).toBe(1);
+        expect(countOccurrences(column, 'class="sc-l3"')).toBe(
+          height >= 2 ? 1 : 0,
+        );
+        expect(countOccurrences(column, 'class="sc-l2"')).toBe(
+          height >= 3 ? 1 : 0,
+        );
+        expect(countOccurrences(column, 'url(#sc-contributions-l1)')).toBe(
+          height >= 4 ? 1 : 0,
+        );
+      }
+    },
+  );
 
-  it('keeps isolated rises and uninterrupted equal-height columns gradient-colored', () => {
-    const isolatedRise = withoutLegend(render([1, 2, 1], { rows: '4' }));
-    expect(renderedColumn(isolatedRise, 1)).toContain('class="sc-l3"');
+  it.each(['none', 'once', 'loop'])(
+    'preserves depth shading in every frozen frame for animation %s',
+    (animation) => {
+      const model = buildChartModel(
+        makeConfig({ columns: '5', weeks: '5', rows: '4', animation }),
+        makeMetadata(),
+        historyFromAdds([1, 2, 0, 1, 0]),
+        { asOf: FIXED_NOW },
+      );
+      const sequence = buildFrameSequence(model, { fps: 4 });
 
-    const equalRun = withoutLegend(render([3, 0, 0], { rows: '3' }));
-    expect(renderedColumn(equalRun, 1)).toContain('class="sc-l3"');
-  });
-
-  it('solidifies only the rising boundary of a longer plateau', () => {
-    // Rendered heights are 1, 4, 4, 4: only the first height-4 column joins
-    // the preceding lower tip to the plateau.
-    const svg = withoutLegend(render([1, 3, 0, 0], { rows: '4' }));
-
-    expect(countOccurrences(renderedColumn(svg, 1), 'class="sc-l4"')).toBe(4);
-    expect(renderedColumn(svg, 2)).toContain('class="sc-l3"');
-    expect(renderedColumn(svg, 3)).toContain('class="sc-l3"');
-  });
-
-  it('does not bridge a rise when the following column interrupts the plateau', () => {
-    // Rendered heights are 1, 3, 4, so there is no flat step after the rise.
-    const svg = withoutLegend(render([1, 2, 1], { rows: '4' }));
-
-    expect(renderedColumn(svg, 1)).toContain('class="sc-l3"');
-    expect(renderedColumn(svg, 1)).toContain('class="sc-l2"');
-  });
+      for (const { svg } of sequence.frames) {
+        for (const [index, height] of [1, 3, 3, 4, 4].entries()) {
+          const column = renderedColumn(svg, index);
+          expect(countOccurrences(column, 'class="sc-l4"')).toBe(1);
+          expect(countOccurrences(column, 'class="sc-l3"')).toBe(
+            height >= 2 ? 1 : 0,
+          );
+          expect(countOccurrences(column, 'class="sc-l2"')).toBe(
+            height >= 3 ? 1 : 0,
+          );
+          expect(countOccurrences(column, 'url(#sc-contributions-l1)')).toBe(
+            height >= 4 ? 1 : 0,
+          );
+        }
+      }
+    },
+  );
 });
 
 describe('renderContributions geometry & validity', () => {

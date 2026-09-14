@@ -21,18 +21,11 @@ need a dashboard, third-party image host, or runtime JavaScript.
 - Standalone SVG output with no scripts or external resources
 - Optional animated **GIF** output for places that don't render inline SVG
 
-It tracks stars without a telescope. The setup is pretty down to earth.
-
-> **Status:** this repository is a reference implementation. `leereilly/star-chart@v1`
-> is shown throughout as the intended published usage, but **no `v1` release
-> exists yet**. Until it is published, use the repository-local form (`uses: ./`)
-> from within this repo, or pin a specific commit SHA once available.
-
 ---
 
 ## 30-second setup
 
-Prefer a guided setup? The [minimal website](https://leereilly.github.io/star-chart/)
+Prefer a guided setup? The [minimal website](https://leereilly.net/star-chart/)
 accepts a repository name or GitHub URL and generates matching workflow and
 README snippets. Its previews are synthetic, not live star counts.
 
@@ -62,7 +55,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Generate star chart
-        uses: leereilly/star-chart@v1 # see status note above; use ./ locally
+        uses: leereilly/star-chart@v1
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
@@ -314,12 +307,11 @@ the zero baseline easy to compare:
 | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | ![Three-month line chart with its star-count axis starting at zero](examples/line-period-3m-scale-absolute-light.svg) | ![The same three-month star history zoomed to the nonzero window baseline](examples/line-period-3m-scale-visible-light.svg) |
 
-Use either step in your workflow after checkout (see the release status note
-above):
+Use either step in your workflow after checkout:
 
 ```yaml
 - name: Chart with a zero-based star-count axis
-  uses: leereilly/star-chart@v1 # use ./ locally until v1 is published
+  uses: leereilly/star-chart@v1
   with:
     token: ${{ github.token }}
     repository: ${{ github.repository }}
@@ -333,7 +325,7 @@ above):
 
 ```yaml
 - name: Chart zoomed to the window baseline
-  uses: leereilly/star-chart@v1 # use ./ locally until v1 is published
+  uses: leereilly/star-chart@v1
   with:
     token: ${{ github.token }}
     repository: ${{ github.repository }}
@@ -608,7 +600,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Generate star chart
-        uses: leereilly/star-chart@v1 # see status note above; use ./ locally
+        uses: leereilly/star-chart@v1
         with:
           token: ${{ github.token }}
           repositories: |
@@ -665,7 +657,7 @@ jobs:
       - uses: actions/checkout@v4 # pin to a SHA in production
 
       - name: Generate star chart
-        uses: leereilly/star-chart@v1 # see status note above
+        uses: leereilly/star-chart@v1
         id: chart
         with:
           output: assets/star-chart.svg
@@ -706,7 +698,7 @@ Generate both files in a single run and paste the snippet the action gives you:
 
 ```yaml
 - name: Generate star charts
-  uses: leereilly/star-chart@v1 # see status note above
+  uses: leereilly/star-chart@v1
   id: chart
   with:
     output: assets/star-chart.svg
@@ -920,8 +912,6 @@ Repository input accepts `owner/repo` or a GitHub URL, including optional
 are accepted. Set the default branch field to match your repository, since
 scheduled workflows only run on its default branch. Every snippet, image
 URL, installation link, and copy action uses the same normalized input.
-The site uses the action's `main` branch while v1 remains unpublished;
-pin a reviewed commit SHA for production.
 
 Run `npm run examples` to regenerate the six small synthetic previews in
 `docs/samples/`. To preview locally, serve the repository with
@@ -934,9 +924,3 @@ fetching live history.
 ## License
 
 [MIT](LICENSE) © 2026 Lee Reilly.
-
-### Edge-case examples
-
-| Zero star                                                      | One star                                                    |
-| -------------------------------------------------------------- | ----------------------------------------------------------- |
-| ![Zero star contribution chart](examples/zero-stars-light.svg) | ![One star contribution chart](examples/one-star-light.svg) |

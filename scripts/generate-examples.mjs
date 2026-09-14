@@ -44,9 +44,9 @@ function syntheticRaw(weeks, seedValue = 1337, scale = 1) {
 const RAW = syntheticRaw(120);
 
 const metadata = {
-  owner: 'leereilly',
-  repo: 'star-chart',
-  fullName: 'leereilly/star-chart',
+  owner: 'rails',
+  repo: 'rails',
+  fullName: 'rails/rails',
   createdAt: new Date(AS_OF - 119 * WEEK).toISOString(),
   stargazersCount: 2048,
 };
@@ -56,17 +56,17 @@ const SIBLING_RAW = syntheticRaw(96, 90210, 0.6);
 const THIRD_RAW = syntheticRaw(72, 4711, 0.35);
 
 const siblingMetadata = {
-  owner: 'leereilly',
-  repo: 'star-chart-docs',
-  fullName: 'leereilly/star-chart-docs',
+  owner: 'rails',
+  repo: 'propshaft',
+  fullName: 'rails/propshaft',
   createdAt: new Date(AS_OF - 95 * WEEK).toISOString(),
   stargazersCount: 734,
 };
 
 const thirdMetadata = {
-  owner: 'leereilly',
-  repo: 'star-chart-examples',
-  fullName: 'leereilly/star-chart-examples',
+  owner: 'rails',
+  repo: 'sprockets-rails',
+  fullName: 'rails/sprockets-rails',
   createdAt: new Date(AS_OF - 71 * WEEK).toISOString(),
   stargazersCount: 256,
 };
@@ -77,12 +77,11 @@ const SINGLE = {
 };
 
 function edgeCaseSource(total) {
-  const name = total === 0 ? 'zero-star' : 'one-star';
   return {
     metadata: {
-      owner: 'sample',
-      repo: name,
-      fullName: `sample/${name}`,
+      owner: 'rails',
+      repo: 'rails',
+      fullName: 'rails/rails',
       createdAt: new Date(AS_OF - WEEK).toISOString(),
       stargazersCount: total,
     },
@@ -127,7 +126,7 @@ const COMPARISON = [
 
 function generate(name, inputs, source = SINGLE, directory = outDir) {
   const { config } = parseInputs({
-    repository: 'leereilly/star-chart',
+    repository: 'rails/rails',
     ...inputs,
   });
   const svg = Array.isArray(source)
@@ -391,7 +390,7 @@ console.log(`Generated ${jobs.length} synthetic example SVGs for docs/.`);
 // `show_legend: false`. The committed SVG examples and the site keep their
 // legends; this is the single showcase GIF referenced from the README.
 const { config: leeConfig } = parseInputs({
-  repository: 'leereilly/star-chart',
+  repository: 'rails/rails',
   style: 'contributions',
   theme: 'light',
   animation: 'once',

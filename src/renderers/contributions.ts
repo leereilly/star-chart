@@ -217,7 +217,6 @@ export function renderContributions(
   for (let j = 0; j < geo.cols; j += 1) {
     const h = heights[j] ?? 0;
     const colX = gridX + j * geo.pitch;
-    const solid = isRisingStepConnector(heights, j);
     const exposed = framing
       ? Math.max(0, Math.min(h, frame.exposed[j] ?? 0))
       : h;
@@ -234,7 +233,6 @@ export function renderContributions(
       colClass,
       finalTy,
       framing,
-      solid,
     );
     columnsSvg.push(`<g>${title}${stack}</g>`);
 
@@ -374,7 +372,6 @@ function buildColumnStack(
   colClass: string,
   finalTy: number,
   attrTransform: boolean,
-  solid: boolean,
 ): string {
   if (height <= 0) {
     return '';
@@ -384,27 +381,20 @@ function buildColumnStack(
     `height="${geo.cell}" rx="${geo.radius}" ry="${geo.radius}" ` +
     `class="${cls}"/>`;
 
-  let cells: string;
-  if (solid) {
-    cells = Array.from({ length: height }, (_, row) =>
-      cellRect(row * geo.pitch, 'sc-l4'),
-    ).join('');
-  } else {
-    const tips: string[] = [cellRect(0, 'sc-l4')];
-    if (height >= 2) {
-      tips.push(cellRect(geo.pitch, 'sc-l3'));
-    }
-    if (height >= 3) {
-      tips.push(cellRect(geo.pitch * 2, 'sc-l2'));
-    }
-    const l1 =
-      height >= 4
-        ? `<rect x="${colX}" y="${plotTop + geo.pitch * 3}" ` +
-          `width="${geo.cell}" height="${coord(geo.rows * geo.pitch)}" ` +
-          `fill="url(#${l1PatId})"/>`
-        : '';
-    cells = tips.join('') + l1;
+  const tips: string[] = [cellRect(0, 'sc-l4')];
+  if (height >= 2) {
+    tips.push(cellRect(geo.pitch, 'sc-l3'));
   }
+  if (height >= 3) {
+    tips.push(cellRect(geo.pitch * 2, 'sc-l2'));
+  }
+  const l1 =
+    height >= 4
+      ? `<rect x="${colX}" y="${plotTop + geo.pitch * 3}" ` +
+        `width="${geo.cell}" height="${coord(geo.rows * geo.pitch)}" ` +
+        `fill="url(#${l1PatId})"/>`
+      : '';
+  const cells = tips.join('') + l1;
 
   // Frozen frames use the SVG `transform` attribute (understood by raster
   // back-ends such as resvg); the animated document uses the CSS `transform`
@@ -414,23 +404,6 @@ function buildColumnStack(
     : `style="transform:translateY(${coord(finalTy)}px)"`;
 
   return `<g class="${colClass}" ${placement}>${cells}</g>`;
-}
-
-function isRisingStepConnector(
-  heights: readonly number[],
-  index: number,
-): boolean {
-  const previous = heights[index - 1];
-  const current = heights[index];
-  const next = heights[index + 1];
-  return (
-    previous !== undefined &&
-    current !== undefined &&
-    next !== undefined &&
-    current > previous &&
-    current > 0 &&
-    next === current
-  );
 }
 
 function columnTitle(model: ChartModel, bucket: Bucket): string {

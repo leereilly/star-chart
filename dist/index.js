@@ -29652,7 +29652,6 @@ function renderContributions(model, frame) {
   for (let j = 0; j < geo.cols; j += 1) {
     const h = heights[j] ?? 0;
     const colX = gridX + j * geo.pitch;
-    const solid = isRisingStepConnector(heights, j);
     const exposed = framing ? Math.max(0, Math.min(h, frame.exposed[j] ?? 0)) : h;
     const finalTy = (geo.rows - exposed) * geo.pitch;
     const colClass = id(`col${j}`);
@@ -29666,8 +29665,7 @@ function renderContributions(model, frame) {
       l1PatId,
       colClass,
       finalTy,
-      framing,
-      solid
+      framing
     );
     columnsSvg.push(`<g>${title}${stack}</g>`);
     if (animEnabled && h > 0) {
@@ -29742,36 +29740,22 @@ function buildDefs(geo, clipId, emptyPatId, l1PatId, gridX, plotTop) {
   const clip = `<clipPath id="${clipId}"><rect x="${gridX}" y="${plotTop}" width="${coord(geo.gridWidth)}" height="${coord(geo.gridHeight)}"/></clipPath>`;
   return pattern(emptyPatId, "sc-empty") + pattern(l1PatId, "sc-l1") + clip;
 }
-function buildColumnStack(geo, height, colX, plotTop, l1PatId, colClass, finalTy, attrTransform, solid) {
+function buildColumnStack(geo, height, colX, plotTop, l1PatId, colClass, finalTy, attrTransform) {
   if (height <= 0) {
     return "";
   }
   const cellRect = (yOffset, cls) => `<rect x="${colX}" y="${plotTop + yOffset}" width="${geo.cell}" height="${geo.cell}" rx="${geo.radius}" ry="${geo.radius}" class="${cls}"/>`;
-  let cells;
-  if (solid) {
-    cells = Array.from(
-      { length: height },
-      (_, row) => cellRect(row * geo.pitch, "sc-l4")
-    ).join("");
-  } else {
-    const tips = [cellRect(0, "sc-l4")];
-    if (height >= 2) {
-      tips.push(cellRect(geo.pitch, "sc-l3"));
-    }
-    if (height >= 3) {
-      tips.push(cellRect(geo.pitch * 2, "sc-l2"));
-    }
-    const l1 = height >= 4 ? `<rect x="${colX}" y="${plotTop + geo.pitch * 3}" width="${geo.cell}" height="${coord(geo.rows * geo.pitch)}" fill="url(#${l1PatId})"/>` : "";
-    cells = tips.join("") + l1;
+  const tips = [cellRect(0, "sc-l4")];
+  if (height >= 2) {
+    tips.push(cellRect(geo.pitch, "sc-l3"));
   }
+  if (height >= 3) {
+    tips.push(cellRect(geo.pitch * 2, "sc-l2"));
+  }
+  const l1 = height >= 4 ? `<rect x="${colX}" y="${plotTop + geo.pitch * 3}" width="${geo.cell}" height="${coord(geo.rows * geo.pitch)}" fill="url(#${l1PatId})"/>` : "";
+  const cells = tips.join("") + l1;
   const placement = attrTransform ? `transform="translate(0 ${coord(finalTy)})"` : `style="transform:translateY(${coord(finalTy)}px)"`;
   return `<g class="${colClass}" ${placement}>${cells}</g>`;
-}
-function isRisingStepConnector(heights, index) {
-  const previous = heights[index - 1];
-  const current = heights[index];
-  const next = heights[index + 1];
-  return previous !== void 0 && current !== void 0 && next !== void 0 && current > previous && current > 0 && next === current;
 }
 function columnTitle(model, bucket) {
   if (bucket.startTime === 0) {

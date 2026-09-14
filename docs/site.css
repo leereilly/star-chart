@@ -29,8 +29,7 @@
   display: block;
 }
 
-.setup-grid,
-.gallery-grid {
+.setup-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
@@ -45,36 +44,6 @@
 figure.Box {
   margin-left: 0;
   margin-right: 0;
-}
-
-.gallery-grid figure {
-  min-width: 0;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-.gallery-grid .sample {
-  display: flex;
-  align-items: center;
-  min-height: 180px;
-}
-
-.sample-fixed-light,
-.sample-auto {
-  color-scheme: light;
-  background: #ffffff;
-}
-
-.sample-fixed-dark {
-  color-scheme: dark;
-  background: #0d1117;
-}
-
-@media (prefers-color-scheme: dark) {
-  .sample-auto {
-    color-scheme: dark;
-    background: #0d1117;
-  }
 }
 
 .snippet {
@@ -121,8 +90,7 @@ figure.Box {
   }
 
   .configuration-grid,
-  .setup-grid,
-  .gallery-grid {
+  .setup-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 

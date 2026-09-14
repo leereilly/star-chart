@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { parse as parseYaml } from 'yaml';
 import { INPUT_NAMES } from '../src/run.js';
 import { OUTPUT_NAMES } from '../src/outputs.js';
@@ -14,6 +15,9 @@ interface ActionYml {
 }
 
 const action = parseYaml(readFileSync('action.yml', 'utf8')) as ActionYml;
+const generator = readFileSync('scripts/generate-examples.mjs', 'utf8');
+const readme = readFileSync('README.md', 'utf8');
+const docs = readFileSync('docs/index.html', 'utf8');
 
 describe('action.yml metadata', () => {
   it('has the marketplace name and description', () => {
@@ -90,6 +94,83 @@ describe('action.yml metadata', () => {
   it('every input has a description', () => {
     for (const [name, input] of Object.entries(action.inputs)) {
       expect(input.description, `input ${name}`).toBeTruthy();
+    }
+  });
+
+  it('keeps published action references while removing the legacy website URL', () => {
+    const trackedText = execFileSync('git', ['grep', '-Il', '.'], {
+      encoding: 'utf8',
+    })
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .map((file) => readFileSync(file, 'utf8'))
+      .join('\n');
+
+    expect(trackedText).not.toMatch(
+      /https?:\/\/leereilly\.github\.io\/star-chart\/?/,
+    );
+    expect(trackedText).toContain('https://leereilly.net/star-chart/');
+    expect(trackedText).toContain('uses: leereilly/star-chart@v1');
+  });
+
+  it('documents v1 without pre-release or local-workaround caveats', () => {
+    for (const [name, content] of [
+      ['README.md', readme],
+      ['docs/index.html', docs],
+    ] as const) {
+      expect(content, name).not.toMatch(
+        /(?:v1.{0,80}(?:not (?:yet )?published|unpublished|unavailable)|use \.\/ locally|release status note|pin a reviewed commit SHA)/is,
+      );
+    }
+  });
+});
+
+describe('example generator fixtures', () => {
+  it('uses Rails repositories for default and edge-case source metadata', () => {
+    expect(generator).toContain("repository: 'rails/rails'");
+    expect(generator).toContain("owner: 'rails'");
+    expect(generator).toContain("repo: 'rails'");
+    expect(generator).toContain("fullName: 'rails/rails'");
+    expect(generator).not.toContain("repository: 'leereilly/star-chart'");
+    expect(generator).not.toContain('fullName: `sample/${name}`');
+  });
+
+  it('aggregates rails, propshaft, and sprockets-rails in stable order', () => {
+    const rails = generator.indexOf("fullName: 'rails/rails'");
+    const propshaft = generator.indexOf("fullName: 'rails/propshaft'");
+    const sprockets = generator.indexOf("fullName: 'rails/sprockets-rails'");
+
+    expect(rails).toBeGreaterThan(-1);
+    expect(propshaft).toBeGreaterThan(rails);
+    expect(sprockets).toBeGreaterThan(propshaft);
+  });
+
+  it('brands generated sources without leaking the former fixture', () => {
+    for (const name of [
+      'contributions-light.svg',
+      'zero-stars-light.svg',
+      'one-star-light.svg',
+    ]) {
+      expect(readFileSync(`examples/${name}`, 'utf8')).toContain(
+        '<title id="sc-contributions-title">rails/rails</title>',
+      );
+    }
+
+    const comparison = readFileSync('examples/clustered-bar-light.svg', 'utf8');
+    expect(comparison.indexOf('rails/rails')).toBeLessThan(
+      comparison.indexOf('rails/propshaft'),
+    );
+    expect(comparison.indexOf('rails/propshaft')).toBeLessThan(
+      comparison.indexOf('rails/sprockets-rails'),
+    );
+
+    for (const file of readdirSync('examples').filter((name) =>
+      name.endsWith('.svg'),
+    )) {
+      expect(readFileSync(`examples/${file}`, 'utf8'), file).not.toMatch(
+        /leereilly\/star-chart(?:-docs|-examples)?/,
+      );
     }
   });
 });

@@ -27,7 +27,7 @@ jobs:
 
       # This repository *is* the action, so it runs locally with "./".
       # In another repository, replace this with:
-      #   uses: leereilly/star-chart@v1   # once a v1 release is published
+      #   uses: leereilly/star-chart@v1
       - name: Build action
         run: |
           npm ci
