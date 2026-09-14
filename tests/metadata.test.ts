@@ -111,18 +111,30 @@ describe('action.yml metadata', () => {
       /https?:\/\/leereilly\.github\.io\/star-chart\/?/,
     );
     expect(trackedText).toContain('https://leereilly.net/star-chart/');
-    expect(trackedText).toContain('uses: leereilly/star-chart@v1');
+    expect(trackedText).toContain('uses: leereilly/star-chart@v0.1');
   });
 
-  it('documents v1 without pre-release or local-workaround caveats', () => {
+  it('pins installation guidance to the published v0.1 release', () => {
     for (const [name, content] of [
       ['README.md', readme],
       ['docs/index.html', docs],
     ] as const) {
-      expect(content, name).not.toMatch(
-        /(?:v1.{0,80}(?:not (?:yet )?published|unpublished|unavailable)|use \.\/ locally|release status note|pin a reviewed commit SHA)/is,
+      expect(content, name).toContain(
+        'https://github.com/leereilly/star-chart/releases/tag/v0.1',
       );
+      expect(content, name).not.toContain('leereilly/star-chart@v1');
     }
+    expect(readme).toContain(
+      'npm install https://github.com/leereilly/star-chart/archive/refs/tags/v0.1.tar.gz',
+    );
+    expect(readme).toContain("from 'star-chart-action'");
+    expect(readme).not.toContain('npm install star-chart-action@0.1');
+    const workflowExample = readFileSync(
+      '.github/workflows/update-star-chart.yml',
+      'utf8',
+    );
+    expect(workflowExample).toContain('uses: leereilly/star-chart@v0.1');
+    expect(workflowExample).not.toContain('leereilly/star-chart@v1');
   });
 });
 

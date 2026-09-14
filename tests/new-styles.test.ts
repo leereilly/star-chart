@@ -117,6 +117,7 @@ describe('new chart styles', () => {
   it('grid uses square tiles with one intensity per cumulative column', () => {
     const svg = withoutLegend(renderChart(model('grid')).svg);
     expect(svg).toContain('data-chart="grid"');
+    expect(svg).toContain('stroke:var(--sc-tileborder)');
     expect(svg).toContain('data-column="7"');
     const cells = [
       ...svg.matchAll(

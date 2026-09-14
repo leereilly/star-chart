@@ -1486,11 +1486,11 @@ function firstNonEmpty(...values) {
 
 // src/config/themes.ts
 var LIGHT_PALETTE = {
-  empty: "#ebedf0",
-  level1: "#9be9a8",
-  level2: "#40c463",
-  level3: "#30a14e",
-  level4: "#216e39"
+  empty: "#f0f2f5",
+  level1: "#bfecbf",
+  level2: "#77be73",
+  level3: "#5da157",
+  level4: "#34612f"
 };
 var DARK_PALETTE = {
   // Lighter than GitHub's #161b22 so unfilled cells read as grey squares
@@ -3478,6 +3478,9 @@ function baseCss(fontFamily) {
     `.sc-dot{fill:var(${CSS_VARS.stroke});}`
   ].join("");
 }
+function tileCss() {
+  return "rect.sc-empty,rect.sc-l1,rect.sc-l2,rect.sc-l3,rect.sc-l4{stroke:var(--sc-tileborder);stroke-width:0.5;}";
+}
 function axisScale(model) {
   return model.config.axisFontSize / DEFAULT_AXIS_FONT_SIZE;
 }
@@ -3574,6 +3577,7 @@ function themeVarValues(theme, model) {
   );
   const colors = theme === "dark" ? DARK_COLORS : LIGHT_COLORS;
   return {
+    ...model.config.style === "contributions" || model.config.style === "grid" ? { "--sc-tileborder": theme === "light" ? "#1f23281a" : "#ffffff0d" } : {},
     [CSS_VARS.empty]: palette.empty,
     [CSS_VARS.l1]: palette.level1,
     [CSS_VARS.l2]: palette.level2,
@@ -4967,7 +4971,7 @@ function renderYAxis(frame) {
 
 // src/renderers/contributions.ts
 var GITHUB_GAP_RATIO = 3 / 10;
-var GITHUB_RADIUS_RATIO = 2 / 10;
+var GITHUB_RADIUS_RATIO = 1 / 6;
 function contribGeometry(input) {
   const model = normalizeChartModel(input);
   const cfg = model.config;
@@ -4979,7 +4983,7 @@ function contribGeometry(input) {
   const maxCell = cfg.cellSize ?? Math.floor(Math.min(innerWidth / Math.max(1, cols), innerHeight / rows));
   const minCell = cfg.cellSize ?? Math.max(3, (cfg.cellRadius ?? 0) * 2);
   for (let cell = maxCell; cell >= Math.max(3, minCell); cell -= 1) {
-    const desiredGap = cfg.cellGap ?? clampInt(cell * GITHUB_GAP_RATIO, 1, cfg.cellSize === null ? 4 : 6);
+    const desiredGap = cfg.cellGap ?? Math.max(1, Math.round(cell * GITHUB_GAP_RATIO));
     const minimumGap = cfg.cellGap ?? desiredGap;
     for (let gap = desiredGap; gap >= minimumGap; gap -= 1) {
       const pitch = cell + gap;
@@ -4987,7 +4991,7 @@ function contribGeometry(input) {
       const gridHeight = rows * pitch - gap;
       const radius = cfg.cellRadius ?? Math.min(
         Math.floor(cell / 2),
-        clampInt(cell * GITHUB_RADIUS_RATIO, 1, 3)
+        Math.max(1, Math.round(cell * GITHUB_RADIUS_RATIO))
       );
       if (gridWidth <= innerWidth && gridHeight <= innerHeight && radius <= cell / 2) {
         return { cols, rows, pitch, cell, gap, radius, gridWidth, gridHeight };
@@ -5113,9 +5117,21 @@ function renderContributions(model, frame) {
       );
     }
   }
-  const plot = `<g clip-path="url(#${clipId})" aria-hidden="true"><rect x="${gridX}" y="${plotTop}" width="${coord(geo.gridWidth)}" height="${coord(geo.gridHeight)}" fill="url(#${emptyPatId})"/>` + columnsSvg.join("") + `</g>`;
+  const emptyGrid = framing ? Array.from(
+    { length: geo.cols },
+    (_, column) => Array.from(
+      { length: geo.rows },
+      (_2, row) => tileRect(
+        geo,
+        gridX + column * geo.pitch,
+        plotTop + row * geo.pitch,
+        "sc-empty"
+      )
+    ).join("")
+  ).join("") : `<rect x="${gridX}" y="${plotTop}" width="${coord(geo.gridWidth)}" height="${coord(geo.gridHeight)}" fill="url(#${emptyPatId})"/>`;
+  const plot = `<g clip-path="url(#${clipId})" aria-hidden="true">` + emptyGrid + columnsSvg.join("") + `</g>`;
   const emptyNote = model.isEmpty ? `<text x="${width / 2}" y="${plotTop + geo.gridHeight / 2}" class="sc-m" font-size="12" text-anchor="middle">No recorded additions yet</text>` : "";
-  const style = baseCss(model.config.fontFamily) + buildThemeCss(model) + animationCss(keyframes, animRules) + (framing ? "" : totalRevealCss(model));
+  const style = baseCss(model.config.fontFamily) + tileCss() + buildThemeCss(model) + animationCss(keyframes, animRules) + (framing ? "" : totalRevealCss(model));
   const min2 = model.config.scale === "visible" ? model.baseline : 0;
   const range = model.windowMax - min2;
   const tickCount = Math.max(
@@ -5159,16 +5175,19 @@ function renderContributions(model, frame) {
   });
 }
 function buildDefs(geo, clipId, emptyPatId, l1PatId, gridX, plotTop) {
-  const square = (cls) => `<rect x="0" y="0" width="${geo.cell}" height="${geo.cell}" rx="${geo.radius}" ry="${geo.radius}" class="${cls}"/>`;
+  const square = (cls) => tileRect(geo, 0, 0, cls);
   const pattern = (patId, cls) => `<pattern id="${patId}" x="${gridX}" y="${plotTop}" width="${geo.pitch}" height="${geo.pitch}" patternUnits="userSpaceOnUse">${square(cls)}</pattern>`;
   const clip = `<clipPath id="${clipId}"><rect x="${gridX}" y="${plotTop}" width="${coord(geo.gridWidth)}" height="${coord(geo.gridHeight)}"/></clipPath>`;
   return pattern(emptyPatId, "sc-empty") + pattern(l1PatId, "sc-l1") + clip;
+}
+function tileRect(geo, x2, y2, cls) {
+  return `<rect x="${x2}" y="${y2}" width="${geo.cell}" height="${geo.cell}" rx="${geo.radius}" ry="${geo.radius}" class="${cls}"/>`;
 }
 function buildColumnStack(geo, height, colX, plotTop, l1PatId, colClass, finalTy, attrTransform) {
   if (height <= 0) {
     return "";
   }
-  const cellRect = (yOffset, cls) => `<rect x="${colX}" y="${plotTop + yOffset}" width="${geo.cell}" height="${geo.cell}" rx="${geo.radius}" ry="${geo.radius}" class="${cls}"/>`;
+  const cellRect = (yOffset, cls) => tileRect(geo, colX, plotTop + yOffset, cls);
   const tips = [cellRect(0, "sc-l4")];
   if (height >= 2) {
     tips.push(cellRect(geo.pitch, "sc-l3"));
@@ -5176,7 +5195,10 @@ function buildColumnStack(geo, height, colX, plotTop, l1PatId, colClass, finalTy
   if (height >= 3) {
     tips.push(cellRect(geo.pitch * 2, "sc-l2"));
   }
-  const l1 = height >= 4 ? `<rect x="${colX}" y="${plotTop + geo.pitch * 3}" width="${geo.cell}" height="${coord(geo.rows * geo.pitch)}" fill="url(#${l1PatId})"/>` : "";
+  const l1 = attrTransform ? Array.from(
+    { length: Math.max(0, height - 3) },
+    (_, row) => cellRect((row + 3) * geo.pitch, "sc-l1")
+  ).join("") : height >= 4 ? `<rect x="${colX}" y="${plotTop + geo.pitch * 3}" width="${geo.cell}" height="${coord(geo.rows * geo.pitch)}" fill="url(#${l1PatId})"/>` : "";
   const cells = tips.join("") + l1;
   const placement = attrTransform ? `transform="translate(0 ${coord(finalTy)})"` : `style="transform:translateY(${coord(finalTy)}px)"`;
   return `<g class="${colClass}" ${placement}>${cells}</g>`;
@@ -5981,6 +6003,7 @@ function renderGrid(model) {
   }).join("");
   return document(model, frame, {
     plot: `<g data-chart="grid">${tiles}</g>`,
+    css: tileCss(),
     titles: ""
   });
 }

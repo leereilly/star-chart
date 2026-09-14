@@ -277,7 +277,7 @@ describe('run orchestration', () => {
     // Fixed themes: neither file carries the auto-theme media query.
     expect(lightSvg).not.toContain('prefers-color-scheme');
     expect(darkSvg).not.toContain('prefers-color-scheme: dark');
-    expect(lightSvg).toContain('#ebedf0');
+    expect(lightSvg).toContain('#f0f2f5');
     expect(darkSvg).toContain('#30363d');
 
     expect(captured.outputs.chart_path).toBe('assets/chart-light.svg');

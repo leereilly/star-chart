@@ -39,6 +39,7 @@
     "test:watch": "vitest",
     "build": "node scripts/build.mjs",
     "examples": "node scripts/generate-examples.mjs",
+    "examples:videos": "node scripts/generate-examples.mjs --videos",
     "test:bundle": "node scripts/test-bundle.mjs",
     "preview": "node scripts/browser-preview.mjs"
   },

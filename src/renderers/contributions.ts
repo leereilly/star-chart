@@ -8,6 +8,7 @@ import { escapeText } from '../utils/svg.js';
 import { formatDate } from '../utils/dates.js';
 import {
   baseCss,
+  tileCss,
   axisGutter,
   legendHeight,
   renderLegend,
@@ -54,7 +55,7 @@ export interface ContribGeometry {
 }
 
 const GITHUB_GAP_RATIO = 3 / 10;
-const GITHUB_RADIUS_RATIO = 2 / 10;
+const GITHUB_RADIUS_RATIO = 1 / 6;
 
 /** Computes contribution grid geometry, honouring auto/explicit cell config. */
 export function contribGeometry(input: ChartModelInput): ContribGeometry {
@@ -79,8 +80,7 @@ export function contribGeometry(input: ChartModelInput): ContribGeometry {
   const minCell = cfg.cellSize ?? Math.max(3, (cfg.cellRadius ?? 0) * 2);
   for (let cell = maxCell; cell >= Math.max(3, minCell); cell -= 1) {
     const desiredGap =
-      cfg.cellGap ??
-      clampInt(cell * GITHUB_GAP_RATIO, 1, cfg.cellSize === null ? 4 : 6);
+      cfg.cellGap ?? Math.max(1, Math.round(cell * GITHUB_GAP_RATIO));
     const minimumGap = cfg.cellGap ?? desiredGap;
     for (let gap = desiredGap; gap >= minimumGap; gap -= 1) {
       const pitch = cell + gap;
@@ -90,7 +90,7 @@ export function contribGeometry(input: ChartModelInput): ContribGeometry {
         cfg.cellRadius ??
         Math.min(
           Math.floor(cell / 2),
-          clampInt(cell * GITHUB_RADIUS_RATIO, 1, 3),
+          Math.max(1, Math.round(cell * GITHUB_RADIUS_RATIO)),
         );
       if (
         gridWidth <= innerWidth &&
@@ -259,10 +259,24 @@ export function renderContributions(
     }
   }
 
+  // Raster pattern textures round fractional pitches to pixels, drifting away
+  // from column clips after resizing. Explicit tiles keep frozen frames aligned.
+  const emptyGrid = framing
+    ? Array.from({ length: geo.cols }, (_, column) =>
+        Array.from({ length: geo.rows }, (_, row) =>
+          tileRect(
+            geo,
+            gridX + column * geo.pitch,
+            plotTop + row * geo.pitch,
+            'sc-empty',
+          ),
+        ).join(''),
+      ).join('')
+    : `<rect x="${gridX}" y="${plotTop}" width="${coord(geo.gridWidth)}" ` +
+      `height="${coord(geo.gridHeight)}" fill="url(#${emptyPatId})"/>`;
   const plot =
     `<g clip-path="url(#${clipId})" aria-hidden="true">` +
-    `<rect x="${gridX}" y="${plotTop}" width="${coord(geo.gridWidth)}" ` +
-    `height="${coord(geo.gridHeight)}" fill="url(#${emptyPatId})"/>` +
+    emptyGrid +
     columnsSvg.join('') +
     `</g>`;
 
@@ -274,6 +288,7 @@ export function renderContributions(
 
   const style =
     baseCss(model.config.fontFamily) +
+    tileCss() +
     buildThemeCss(model) +
     animationCss(keyframes, animRules) +
     (framing ? '' : totalRevealCss(model));
@@ -344,9 +359,7 @@ function buildDefs(
   gridX: number,
   plotTop: number,
 ): string {
-  const square = (cls: string): string =>
-    `<rect x="0" y="0" width="${geo.cell}" height="${geo.cell}" ` +
-    `rx="${geo.radius}" ry="${geo.radius}" class="${cls}"/>`;
+  const square = (cls: string): string => tileRect(geo, 0, 0, cls);
   const pattern = (patId: string, cls: string): string =>
     `<pattern id="${patId}" x="${gridX}" y="${plotTop}" ` +
     `width="${geo.pitch}" height="${geo.pitch}" ` +
@@ -358,10 +371,22 @@ function buildDefs(
   return pattern(emptyPatId, 'sc-empty') + pattern(l1PatId, 'sc-l1') + clip;
 }
 
+function tileRect(
+  geo: ContribGeometry,
+  x: number,
+  y: number,
+  cls: string,
+): string {
+  return (
+    `<rect x="${x}" y="${y}" width="${geo.cell}" height="${geo.cell}" ` +
+    `rx="${geo.radius}" ry="${geo.radius}" class="${cls}"/>`
+  );
+}
+
 /**
  * Builds a single column's translated colour stack: l4/l3/l2 tips over a
- * continuing l1 pattern. Only a vertical (pitch-multiple) transform animates,
- * so cell patterns remain aligned at every step.
+ * continuing l1 fill. SVG animation uses a compact pattern; frozen raster
+ * frames use individual rectangles. Vertical transforms stay pitch-aligned.
  */
 function buildColumnStack(
   geo: ContribGeometry,
@@ -377,9 +402,7 @@ function buildColumnStack(
     return '';
   }
   const cellRect = (yOffset: number, cls: string): string =>
-    `<rect x="${colX}" y="${plotTop + yOffset}" width="${geo.cell}" ` +
-    `height="${geo.cell}" rx="${geo.radius}" ry="${geo.radius}" ` +
-    `class="${cls}"/>`;
+    tileRect(geo, colX, plotTop + yOffset, cls);
 
   const tips: string[] = [cellRect(0, 'sc-l4')];
   if (height >= 2) {
@@ -388,8 +411,11 @@ function buildColumnStack(
   if (height >= 3) {
     tips.push(cellRect(geo.pitch * 2, 'sc-l2'));
   }
-  const l1 =
-    height >= 4
+  const l1 = attrTransform
+    ? Array.from({ length: Math.max(0, height - 3) }, (_, row) =>
+        cellRect((row + 3) * geo.pitch, 'sc-l1'),
+      ).join('')
+    : height >= 4
       ? `<rect x="${colX}" y="${plotTop + geo.pitch * 3}" ` +
         `width="${geo.cell}" height="${coord(geo.rows * geo.pitch)}" ` +
         `fill="url(#${l1PatId})"/>`

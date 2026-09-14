@@ -29,6 +29,10 @@ Prefer a guided setup? The [minimal website](https://leereilly.net/star-chart/)
 accepts a repository name or GitHub URL and generates matching workflow and
 README snippets. Its previews are synthetic, not live star counts.
 
+Use the published [v0.1 release](https://github.com/leereilly/star-chart/releases/tag/v0.1):
+`uses: leereilly/star-chart@v0.1`. The tag includes the bundled action; no
+separate download, npm installation, or build step is needed in your workflow.
+
 Add a workflow that generates the chart and commits it on a schedule:
 
 ```yaml
@@ -55,7 +59,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Generate star chart
-        uses: leereilly/star-chart@v1
+        uses: leereilly/star-chart@v0.1
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
@@ -311,7 +315,7 @@ Use either step in your workflow after checkout:
 
 ```yaml
 - name: Chart with a zero-based star-count axis
-  uses: leereilly/star-chart@v1
+  uses: leereilly/star-chart@v0.1
   with:
     token: ${{ github.token }}
     repository: ${{ github.repository }}
@@ -325,7 +329,7 @@ Use either step in your workflow after checkout:
 
 ```yaml
 - name: Chart zoomed to the window baseline
-  uses: leereilly/star-chart@v1
+  uses: leereilly/star-chart@v0.1
   with:
     token: ${{ github.token }}
     repository: ${{ github.repository }}
@@ -363,9 +367,14 @@ blocks wide by 26 blocks high. `width` and `height` size the rendered image in
 Automatic tile sizing fits **both** the available width and any
 explicit height, after reserving header, axes, legend, date, and logo space. Cells remain
 square, at least 3px across. Automatic geometry follows GitHub's contribution
-grid proportions: a 3px gap and 2px radius for a 10px cell, scaled with the
-cell size. Explicit cell size, gap, and radius values are never silently
+grid proportions: gaps about 30% of the cell edge and corner radii about
+one sixth, rounded to whole pixels. Gaps and corners continue scaling on
+large heroes rather than hitting a fixed pixel cap (a 1800px hero uses
+24px cells, 7px gaps, and 4px corners with a 20px axis font). Subtle themed outlines distinguish
+tiles without heavy grid lines. Explicit cell size, gap, and radius values are never silently
 scaled or clamped.
+GIF frames use individual rectangles rather than repeating SVG textures, so
+fractional resizing preserves complete tiles and consistent gutters.
 Impossible combinations fail with a sizing remedy rather than clipping the
 newest columns or footer. For example, a custom `rows: 100` cannot fit into a
 300px-high chart: reduce rows or increase height/use `auto`. A 240px-wide
@@ -464,7 +473,7 @@ with:
 
 Default palettes:
 
-- **Light:** empty `#ebedf0`, `#9be9a8`, `#40c463`, `#30a14e`, `#216e39`.
+- **Light:** empty `#f0f2f5`, `#bfecbf`, `#77be73`, `#5da157`, `#34612f`.
 - **Dark:** empty `#30363d`, `#0e4429`, `#006d32`, `#26a641`, `#39d353`.
 
 The fill levels match GitHub's contribution graph. The dark empty cell is
@@ -600,7 +609,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Generate star chart
-        uses: leereilly/star-chart@v1
+        uses: leereilly/star-chart@v0.1
         with:
           token: ${{ github.token }}
           repositories: |
@@ -657,7 +666,7 @@ jobs:
       - uses: actions/checkout@v4 # pin to a SHA in production
 
       - name: Generate star chart
-        uses: leereilly/star-chart@v1
+        uses: leereilly/star-chart@v0.1
         id: chart
         with:
           output: assets/star-chart.svg
@@ -698,7 +707,7 @@ Generate both files in a single run and paste the snippet the action gives you:
 
 ```yaml
 - name: Generate star charts
-  uses: leereilly/star-chart@v1
+  uses: leereilly/star-chart@v0.1
   id: chart
   with:
     output: assets/star-chart.svg
@@ -834,6 +843,24 @@ Star Chart uses GitHub's star-history API
   (programmatic callers can also supply a larger retry budget).
 
 ---
+
+## Library installation
+
+For programmatic use with Node 24 or newer, install the tagged source archive:
+
+```bash
+npm install https://github.com/leereilly/star-chart/archive/refs/tags/v0.1.tar.gz
+```
+
+```js
+import { parseInputs, renderStarChart } from 'star-chart-action';
+```
+
+The `v0.1` Git tag contains package version `0.1.0` and the ready-to-use
+`dist/lib.js` entrypoint, declarations, and raster assets. The release has no
+separately uploaded assets; the command above installs from GitHub, not from
+an assumed npm-registry release. The action tag and package version are
+different identifiers—keep `@v0.1` in workflow `uses` references.
 
 ## Development
 

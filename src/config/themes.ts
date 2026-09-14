@@ -1,12 +1,12 @@
 import type { Palette, ThemeName } from '../models/index.js';
 
-/** GitHub-native contribution palettes. */
+/** Contribution palettes, with muted light-mode greens matching GitHub tiles. */
 export const LIGHT_PALETTE: Palette = {
-  empty: '#ebedf0',
-  level1: '#9be9a8',
-  level2: '#40c463',
-  level3: '#30a14e',
-  level4: '#216e39',
+  empty: '#f0f2f5',
+  level1: '#bfecbf',
+  level2: '#77be73',
+  level3: '#5da157',
+  level4: '#34612f',
 };
 
 export const DARK_PALETTE: Palette = {

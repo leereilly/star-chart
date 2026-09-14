@@ -62,6 +62,14 @@ export function baseCss(fontFamily: string): string {
   ].join('');
 }
 
+/** A hairline outline keeps tiles distinct without consuming their gutters. */
+export function tileCss(): string {
+  return (
+    'rect.sc-empty,rect.sc-l1,rect.sc-l2,rect.sc-l3,rect.sc-l4{' +
+    'stroke:var(--sc-tileborder);stroke-width:0.5;}'
+  );
+}
+
 /**
  * Ratio of the configured axis legend size to the default. Axis metrics
  * (reserved bands, gutters, label gaps) are multiplied by it so a larger
@@ -228,6 +236,9 @@ function themeVarValues(
   );
   const colors: ThemeColors = theme === 'dark' ? DARK_COLORS : LIGHT_COLORS;
   return {
+    ...(model.config.style === 'contributions' || model.config.style === 'grid'
+      ? { '--sc-tileborder': theme === 'light' ? '#1f23281a' : '#ffffff0d' }
+      : {}),
     [CSS_VARS.empty]: palette.empty,
     [CSS_VARS.l1]: palette.level1,
     [CSS_VARS.l2]: palette.level2,

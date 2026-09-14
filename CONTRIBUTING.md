@@ -96,6 +96,22 @@ CI fails if a fresh `npm run build` / `npm run examples` would produce any
 tracked change or new untracked file. Builds are reproducible — no build-time
 timestamps are injected, and examples use a fixed synthetic clock.
 
+To also rebuild the Rails social videos, install FFmpeg locally and run:
+
+```bash
+npm run build
+npm run examples:videos
+```
+
+This regenerates the same SVG/GIF examples plus
+`assets/rails-rails-social-loop.mp4`, its identical `-candidate.mp4` copy,
+and the source/encoded-frame PNGs in `assets/validation/`. The 1080×588,
+30fps, 11.6-second cut builds in light mode, fades to dark, reverses, then
+fades back to the opening frame. It uses the deterministic synthetic Rails
+fixture, not live repository counts. Tile geometry is resolved at 1800px
+before rasterizing to 1080px; FFmpeg does not stretch the square cells.
+Video regeneration is opt-in so ordinary examples and CI need no FFmpeg.
+
 ## Tests & snapshots
 
 - Every rendered SVG is parsed as XML and checked for duplicate IDs, broken

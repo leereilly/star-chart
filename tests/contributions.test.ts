@@ -185,8 +185,8 @@ describe('renderContributions tip palette counts', () => {
           expect(countOccurrences(column, 'class="sc-l2"')).toBe(
             height >= 3 ? 1 : 0,
           );
-          expect(countOccurrences(column, 'url(#sc-contributions-l1)')).toBe(
-            height >= 4 ? 1 : 0,
+          expect(countOccurrences(column, 'class="sc-l1"')).toBe(
+            Math.max(0, height - 3),
           );
         }
       }
@@ -236,6 +236,52 @@ describe('renderContributions geometry & validity', () => {
     expect(() => renderContributions(model)).toThrow(RenderError);
   });
 
+  it.each(['contributions', 'grid'])(
+    'keeps proportional gaps and corners on large %s heroes',
+    (style) => {
+      const model = buildChartModel(
+        makeConfig({ style, width: '1800', axis_font_size: '20' }),
+        makeMetadata(),
+        historyFromAdds(new Array(52).fill(1)),
+        { asOf: FIXED_NOW },
+      );
+      const geo = contribGeometry(model);
+      expect(geo.cell).toBe(24);
+      expect(geo.gap).toBe(7);
+      expect(geo.radius).toBe(4);
+      expect(geo.gap / geo.cell).toBeCloseTo(0.3, 1);
+    },
+  );
+
+  it('preserves explicit cell dimensions, including zero gap and radius', () => {
+    for (const [cell, gap, radius] of [
+      [27, 8, 4],
+      [32, 0, 0],
+    ]) {
+      const model = buildChartModel(
+        makeConfig({
+          columns: '4',
+          rows: '4',
+          width: '900',
+          cell_size: String(cell),
+          cell_gap: String(gap),
+          cell_radius: String(radius),
+        }),
+        makeMetadata(),
+        historyFromAdds([1, 2, 3, 4]),
+        { asOf: FIXED_NOW },
+      );
+      expect(contribGeometry(model)).toMatchObject({ cell, gap, radius });
+    }
+  });
+
+  it('outlines patterned cells and moving tips with a subtle themed border', () => {
+    const svg = render([1, 2, 3, 4], { theme: 'auto' });
+    expect(svg).toContain('stroke:var(--sc-tileborder)');
+    expect(svg).toContain('stroke-width:0.5');
+    expect(svg).toContain('--sc-tileborder:#1f23281a');
+    expect(svg).toContain('--sc-tileborder:#ffffff0d');
+  });
   it('empty data renders a valid chart, not an exception', () => {
     const svg = render([0, 0, 0]);
     expect(svg).toContain('No recorded additions');

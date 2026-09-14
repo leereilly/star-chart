@@ -22,6 +22,8 @@ export declare const CSS_VARS: {
  * valid in CSS properties, not SVG presentation attributes.
  */
 export declare function baseCss(fontFamily: string): string;
+/** A hairline outline keeps tiles distinct without consuming their gutters. */
+export declare function tileCss(): string;
 /**
  * Ratio of the configured axis legend size to the default. Axis metrics
  * (reserved bands, gutters, label gaps) are multiplied by it so a larger

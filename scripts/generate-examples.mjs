@@ -413,6 +413,11 @@ console.log(
     `${(leeGif.bytes / 1024).toFixed(0)} KB).`,
 );
 
+if (process.argv.includes('--videos')) {
+  const { generateVideos } = await import('./generate-videos.mjs');
+  await generateVideos(root, SINGLE, AS_OF);
+}
+
 // Sanity: ensure every example is non-empty and starts with <svg.
 for (const [name] of jobs) {
   for (const directory of [outDir, siteDir]) {

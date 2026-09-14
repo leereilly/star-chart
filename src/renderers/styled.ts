@@ -28,6 +28,7 @@ import { contribGeometry } from './contributions.js';
 import { resolveTimeline } from './animation.js';
 import {
   baseCss,
+  tileCss,
   buildThemeCss,
   makeId,
   RenderError,
@@ -194,6 +195,7 @@ export function renderGrid(model: ChartModel): string {
     .join('');
   return document(model, frame, {
     plot: `<g data-chart="grid">${tiles}</g>`,
+    css: tileCss(),
     titles: '',
   });
 }
