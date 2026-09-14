@@ -6,13 +6,6 @@
   <img alt="Verified rails/rails star history snapshot, April 2008 to September 2026, rendered as a GitHub-style contribution grid" src="examples/contributions-animated-once-light.svg" width="1080">
 </picture>
 
-The showcase uses a **frozen GitHub API snapshot from September 14, 2026 (UTC)**,
-not synthetic growth: Rails was created **April 11, 2008** and has **58,751
-current stars** in that snapshot. Its native weekly history contains **58,750
-recorded additions**; that one-star API difference is preserved, not scaled
-away. The chart, GIF, and social videos use those actual weekly counts.
-See [snapshot provenance and refresh instructions](CONTRIBUTING.md#refreshing-the-authentic-showcase-snapshot).
-
 Generate a star history chart for a GitHub README. The output is a standalone
 SVG styled like a GitHub contribution graph.
 
