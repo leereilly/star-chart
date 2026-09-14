@@ -3,6 +3,7 @@ import { build } from 'esbuild';
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { makeScratchDir } from './helpers/index.js';
 
 let scratch: string;
@@ -47,7 +48,9 @@ describe('bundle smoke test', () => {
     const outputFile = path.join(scratch, 'gh_output');
     fs.writeFileSync(outputFile, '');
 
-    const stub = path.resolve('tests/helpers/fetch-stub.mjs');
+    const stub = pathToFileURL(
+      path.resolve('tests/helpers/fetch-stub.mjs'),
+    ).href;
     execFileSync('node', ['--import', stub, bundlePath], {
       env: {
         ...process.env,
@@ -67,7 +70,9 @@ describe('bundle smoke test', () => {
     const svg = fs.readFileSync(svgPath, 'utf8');
     expect(svg.startsWith('<svg')).toBe(true);
 
-    const outputs = fs.readFileSync(outputFile, 'utf8');
+    const outputs = fs
+      .readFileSync(outputFile, 'utf8')
+      .replaceAll('\r\n', '\n');
     // core.setOutput writes name<<delimiter\nvalue\ndelimiter blocks.
     expect(outputs).toMatch(/stars<<[^\n]+\n4321\n/);
     expect(outputs).toMatch(/chart_path<<[^\n]+\nassets\/chart\.svg\n/);
@@ -84,7 +89,9 @@ describe('bundle smoke test', () => {
     const outputFile = path.join(scratch, 'gh_output_dual');
     fs.writeFileSync(outputFile, '');
 
-    const stub = path.resolve('tests/helpers/fetch-stub.mjs');
+    const stub = pathToFileURL(
+      path.resolve('tests/helpers/fetch-stub.mjs'),
+    ).href;
     execFileSync('node', ['--import', stub, bundlePath], {
       env: {
         ...process.env,
@@ -113,7 +120,9 @@ describe('bundle smoke test', () => {
       'data-repository="octocat/spoon-knife"',
     );
 
-    const outputs = fs.readFileSync(outputFile, 'utf8');
+    const outputs = fs
+      .readFileSync(outputFile, 'utf8')
+      .replaceAll('\r\n', '\n');
     // Stars are summed across both stubbed repositories (4321 + 1000).
     expect(outputs).toMatch(/stars<<[^\n]+\n5321\n/);
     expect(outputs).toMatch(/chart_path<<[^\n]+\nassets\/chart-light\.svg\n/);

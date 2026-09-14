@@ -6,7 +6,7 @@ import {
   writeFileSync,
   rmSync,
 } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import {
   buildMultiRepositoryChartModel,
@@ -30,7 +30,7 @@ mkdirSync(workspace, { recursive: true });
 const outputFile = join(scratch, 'gh_output');
 writeFileSync(outputFile, '');
 
-const stub = resolve(root, 'tests/helpers/fetch-stub.mjs');
+const stub = pathToFileURL(resolve(root, 'tests/helpers/fetch-stub.mjs')).href;
 
 try {
   execFileSync('node', ['--import', stub, dist], {
@@ -57,7 +57,7 @@ if (!existsSync(svgPath)) {
   process.exit(1);
 }
 const svg = readFileSync(svgPath, 'utf8');
-const outputs = readFileSync(outputFile, 'utf8');
+const outputs = readFileSync(outputFile, 'utf8').replaceAll('\r\n', '\n');
 
 // Second pass: compare two repositories in a dual light/dark pair.
 const dualWorkspace = join(scratch, 'ws-dual');
@@ -88,7 +88,10 @@ try {
 
 const lightPath = join(dualWorkspace, 'assets/chart-light.svg');
 const darkPath = join(dualWorkspace, 'assets/chart-dark.svg');
-const dualOutputs = readFileSync(dualOutputFile, 'utf8');
+const dualOutputs = readFileSync(dualOutputFile, 'utf8').replaceAll(
+  '\r\n',
+  '\n',
+);
 
 const checks = [
   [svg.startsWith('<svg'), 'SVG output is well-formed'],
