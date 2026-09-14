@@ -32,8 +32,8 @@ need a dashboard, third-party image host, or runtime JavaScript.
 
 ## 30-second setup
 
-Use the published [v0.2 release](https://github.com/leereilly/star-chart/releases/tag/v0.2):
-`uses: leereilly/star-chart@v0.2`. The tag includes the bundled action; no
+Use the published [v0.3 release](https://github.com/leereilly/star-chart/releases/tag/v0.3):
+`uses: leereilly/star-chart@v0.3`. The tag includes the bundled action; no
 separate download, npm installation, or build step is needed in your workflow.
 
 Add a workflow that generates the chart and commits it on a schedule:
@@ -62,7 +62,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Generate star chart
-        uses: leereilly/star-chart@v0.2
+        uses: leereilly/star-chart@v0.3
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
@@ -324,7 +324,7 @@ Use either step in your workflow after checkout:
 
 ```yaml
 - name: Chart with a zero-based star-count axis
-  uses: leereilly/star-chart@v0.2
+  uses: leereilly/star-chart@v0.3
   with:
     token: ${{ github.token }}
     repository: ${{ github.repository }}
@@ -338,7 +338,7 @@ Use either step in your workflow after checkout:
 
 ```yaml
 - name: Chart zoomed to the window baseline
-  uses: leereilly/star-chart@v0.2
+  uses: leereilly/star-chart@v0.3
   with:
     token: ${{ github.token }}
     repository: ${{ github.repository }}
@@ -618,7 +618,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Generate star chart
-        uses: leereilly/star-chart@v0.2
+        uses: leereilly/star-chart@v0.3
         with:
           token: ${{ github.token }}
           repositories: |
@@ -674,7 +674,7 @@ jobs:
       - uses: actions/checkout@v4 # pin to a SHA in production
 
       - name: Generate star chart
-        uses: leereilly/star-chart@v0.2
+        uses: leereilly/star-chart@v0.3
         id: chart
         with:
           output: assets/star-chart.svg
@@ -715,7 +715,7 @@ Generate both files in a single run and paste the snippet the action gives you:
 
 ```yaml
 - name: Generate star charts
-  uses: leereilly/star-chart@v0.2
+  uses: leereilly/star-chart@v0.3
   id: chart
   with:
     output: assets/star-chart.svg
@@ -868,18 +868,18 @@ Star Chart uses GitHub's star-history API
 For programmatic use with Node 24 or newer, install the tagged source archive:
 
 ```bash
-npm install https://github.com/leereilly/star-chart/archive/refs/tags/v0.2.tar.gz
+npm install https://github.com/leereilly/star-chart/archive/refs/tags/v0.3.tar.gz
 ```
 
 ```js
 import { parseInputs, renderStarChart } from 'star-chart-action';
 ```
 
-The `v0.2` Git tag contains package version `0.2.0` and the ready-to-use
+The `v0.3` Git tag contains package version `0.3.0` and the ready-to-use
 `dist/lib.js` entrypoint, declarations, and raster assets. The release has no
 separately uploaded assets; the command above installs from GitHub, not from
 an assumed npm-registry release. The action tag and package version are
-different identifiers—keep `@v0.2` in workflow `uses` references.
+different identifiers—keep `@v0.3` in workflow `uses` references.
 
 ## Development
 

@@ -545,7 +545,7 @@ jobs:
         with:
           ref: '${branch}'
 
-      - uses: leereilly/star-chart@v0.2
+      - uses: leereilly/star-chart@v0.3
         with:
           token: \${{ github.token }}
 ${Object.entries(values)

@@ -264,7 +264,7 @@ describe('documentation website', () => {
       site.buildExample('acme/widgets', 'main').workflow,
     );
     const inputs = workflowInputs();
-    expect(workflow.jobs.chart.steps[1].uses).toBe('leereilly/star-chart@v0.2');
+    expect(workflow.jobs.chart.steps[1].uses).toBe('leereilly/star-chart@v0.3');
     expect(workflow.jobs.chart.steps[1].uses).not.toContain('@main');
     expect(inputs).toMatchObject({
       token: '${{ github.token }}',
