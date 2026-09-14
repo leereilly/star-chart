@@ -432,6 +432,20 @@ describe('renderChartGif', () => {
     expect(countFrames(gif.buffer)).toBe(1);
   });
 
+  it('optionally trims only background rows shared by every frame', async () => {
+    const model = animatedModel();
+    const untrimmed = await renderChartGif(model, { width: 320, fps: 10 });
+    const trimmed = await renderChartGif(model, {
+      width: 320,
+      fps: 10,
+      trimVertical: true,
+    });
+
+    expect(trimmed.width).toBe(untrimmed.width);
+    expect(trimmed.height).toBeLessThan(untrimmed.height);
+    expect(trimmed.frameCount).toBe(untrimmed.frameCount);
+  });
+
   it('encodes a multi-frame GIF for an animated non-contributions style', async () => {
     const gif = await renderChartGif(
       styledModel('line', { animation: 'once' }),

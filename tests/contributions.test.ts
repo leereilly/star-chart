@@ -34,6 +34,14 @@ function countOccurrences(haystack: string, needle: string): number {
   return haystack.split(needle).length - 1;
 }
 
+function renderedColumn(svg: string, index: number): string {
+  const match = svg.match(
+    new RegExp(`<g class="sc-contributions-col${index}"[^>]*>([\\s\\S]*?)</g>`),
+  );
+  expect(match, `missing rendered column ${index}`).not.toBeNull();
+  return match?.[1] ?? '';
+}
+
 function render(adds: number[], raw: Record<string, string> = {}): string {
   const history = historyFromAdds(adds);
   const config = makeConfig({
@@ -121,6 +129,44 @@ describe('renderContributions tip palette counts', () => {
     expect(countOccurrences(svg, '"sc-l4"')).toBe(1);
     expect(countOccurrences(svg, '"sc-l3"')).toBe(0);
     expect(countOccurrences(svg, '"sc-l2"')).toBe(0);
+  });
+
+  it('makes the first column of a raised flat step solid darkest green', () => {
+    // Rendered heights are 1, 3, 3: column 1 connects the lower line to the
+    // two-column plateau shown in the reference geometry.
+    const svg = withoutLegend(render([1, 2, 0], { rows: '3' }));
+    const connector = renderedColumn(svg, 1);
+
+    expect(countOccurrences(connector, 'class="sc-l4"')).toBe(3);
+    expect(connector).not.toContain('class="sc-l3"');
+    expect(connector).not.toContain('class="sc-l2"');
+    expect(connector).not.toContain('url(#sc-contributions-l1)');
+  });
+
+  it('keeps isolated rises and uninterrupted equal-height columns gradient-colored', () => {
+    const isolatedRise = withoutLegend(render([1, 2, 1], { rows: '4' }));
+    expect(renderedColumn(isolatedRise, 1)).toContain('class="sc-l3"');
+
+    const equalRun = withoutLegend(render([3, 0, 0], { rows: '3' }));
+    expect(renderedColumn(equalRun, 1)).toContain('class="sc-l3"');
+  });
+
+  it('solidifies only the rising boundary of a longer plateau', () => {
+    // Rendered heights are 1, 4, 4, 4: only the first height-4 column joins
+    // the preceding lower tip to the plateau.
+    const svg = withoutLegend(render([1, 3, 0, 0], { rows: '4' }));
+
+    expect(countOccurrences(renderedColumn(svg, 1), 'class="sc-l4"')).toBe(4);
+    expect(renderedColumn(svg, 2)).toContain('class="sc-l3"');
+    expect(renderedColumn(svg, 3)).toContain('class="sc-l3"');
+  });
+
+  it('does not bridge a rise when the following column interrupts the plateau', () => {
+    // Rendered heights are 1, 3, 4, so there is no flat step after the rise.
+    const svg = withoutLegend(render([1, 2, 1], { rows: '4' }));
+
+    expect(renderedColumn(svg, 1)).toContain('class="sc-l3"');
+    expect(renderedColumn(svg, 1)).toContain('class="sc-l2"');
   });
 });
 

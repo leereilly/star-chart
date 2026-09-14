@@ -11,6 +11,8 @@ export interface GifResult {
 export interface GifOptions extends FrameOptions {
     /** Rasterized frame width in px; defaults to the chart's configured width. */
     readonly width?: number;
+    /** Removes rows that are background-only across every rendered frame. */
+    readonly trimVertical?: boolean;
 }
 /**
  * Renders a chart model to an animated GIF.

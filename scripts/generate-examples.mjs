@@ -396,11 +396,17 @@ const { config: leeConfig } = parseInputs({
   theme: 'light',
   animation: 'once',
   show_legend: 'false',
+  show_total: 'true',
+  show_change: 'false',
 });
 const leeModel = buildChartModel(leeConfig, metadata, SINGLE.history, {
   asOf: AS_OF,
 });
-const leeGif = await renderChartGif(leeModel, { width: 720, fps: 16 });
+const leeGif = await renderChartGif(leeModel, {
+  width: 720,
+  fps: 16,
+  trimVertical: true,
+});
 writeFileSync(join(root, 'lee.gif'), leeGif.buffer);
 console.log(
   `Generated lee.gif (${leeGif.frameCount} frames, ` +

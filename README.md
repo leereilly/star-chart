@@ -418,7 +418,9 @@ with:
 `contributions` shows **cumulative recorded stars**, rounded to whole tile
 heights. Its numeric ticks align to those tile levels; the darkest square is
 the **column tip**, followed by lighter squares one, two, and three or more
-rows below it. These shades are not star-count bins or weekdays.
+rows below it. At a rising step followed by an equal-height column, the first
+column of the new level is darkest throughout to connect the stepped tip line.
+These shades are not star-count bins or weekdays.
 `grid` instead uses four cumulative-value intensity ranges, each excluding its
 lower bound and including its upper bound: `(low, high]`. The ranges follow
 `scale`, including the nonzero baseline in visible mode. **Unoccupied** tiles

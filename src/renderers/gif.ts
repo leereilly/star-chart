@@ -39,6 +39,8 @@ export interface GifResult {
 export interface GifOptions extends FrameOptions {
   /** Rasterized frame width in px; defaults to the chart's configured width. */
   readonly width?: number;
+  /** Removes rows that are background-only across every rendered frame. */
+  readonly trimVertical?: boolean;
 }
 
 let wasmReady: Promise<void> | null = null;
@@ -70,7 +72,7 @@ export async function renderChartGif(
     (buffer): buffer is Uint8Array => buffer !== null,
   );
 
-  const rendered = sequence.frames.map((frame) => {
+  let rendered = sequence.frames.map((frame) => {
     const flattened = flattenThemeVars(frame.svg, model, sequence.theme);
     const resvg = new Resvg(flattened, {
       background,
@@ -97,10 +99,15 @@ export async function renderChartGif(
     return result;
   });
 
+  if (options.trimVertical) {
+    rendered = trimBackgroundRows(rendered);
+  }
+
   const first = rendered[0];
   if (!first) {
     throw new Error('GIF rendering produced no frames.');
   }
+
   const { width, height } = first;
 
   // One global palette derived from the final, fully built frame keeps the
@@ -129,6 +136,76 @@ export async function renderChartGif(
     loop: sequence.loop,
     bytes: buffer.byteLength,
   };
+}
+
+function trimBackgroundRows(
+  frames: readonly {
+    readonly pixels: Uint8Array<ArrayBuffer>;
+    readonly width: number;
+    readonly height: number;
+    readonly delayMs: number;
+  }[],
+): Array<{
+  pixels: Uint8Array<ArrayBuffer>;
+  width: number;
+  height: number;
+  delayMs: number;
+}> {
+  const first = frames[0];
+  if (!first) {
+    return [];
+  }
+
+  let top = 0;
+  while (top < first.height && isBackgroundRow(frames, top)) {
+    top += 1;
+  }
+
+  let bottom = first.height;
+  while (bottom > top && isBackgroundRow(frames, bottom - 1)) {
+    bottom -= 1;
+  }
+
+  if (top === first.height || (top === 0 && bottom === first.height)) {
+    return [...frames];
+  }
+
+  const height = bottom - top;
+  const rowBytes = first.width * 4;
+  return frames.map((frame) => ({
+    ...frame,
+    pixels: frame.pixels.slice(top * rowBytes, bottom * rowBytes),
+    height,
+  }));
+}
+
+function isBackgroundRow(
+  frames: readonly {
+    readonly pixels: Uint8Array<ArrayBuffer>;
+    readonly width: number;
+    readonly height: number;
+  }[],
+  row: number,
+): boolean {
+  return frames.every((frame) => {
+    const rowStart = row * frame.width * 4;
+    const rowEnd = rowStart + frame.width * 4;
+    const red = frame.pixels[0];
+    const green = frame.pixels[1];
+    const blue = frame.pixels[2];
+    const alpha = frame.pixels[3];
+    for (let offset = rowStart; offset < rowEnd; offset += 4) {
+      if (
+        frame.pixels[offset] !== red ||
+        frame.pixels[offset + 1] !== green ||
+        frame.pixels[offset + 2] !== blue ||
+        frame.pixels[offset + 3] !== alpha
+      ) {
+        return false;
+      }
+    }
+    return true;
+  });
 }
 
 /** Resolves the opaque background a GIF frame is composited onto. */
