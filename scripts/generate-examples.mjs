@@ -76,6 +76,34 @@ const SINGLE = {
   history: normalizeHistory(RAW, { asOf: AS_OF }),
 };
 
+function edgeCaseSource(total) {
+  const name = total === 0 ? 'zero-star' : 'one-star';
+  return {
+    metadata: {
+      owner: 'sample',
+      repo: name,
+      fullName: `sample/${name}`,
+      createdAt: new Date(AS_OF - WEEK).toISOString(),
+      stargazersCount: total,
+    },
+    history: normalizeHistory(
+      total === 0
+        ? []
+        : [
+            {
+              timestamp: new Date(AS_OF).toISOString(),
+              total,
+              days: [total, 0, 0, 0, 0, 0, 0],
+            },
+          ],
+      { asOf: AS_OF },
+    ),
+  };
+}
+
+const ZERO_STARS = edgeCaseSource(0);
+const ONE_STAR = edgeCaseSource(1);
+
 const AGGREGATE = {
   metadata: aggregateMetadata([metadata, siblingMetadata, thirdMetadata]),
   history: aggregateHistories([
@@ -184,6 +212,17 @@ jobs.push([
 jobs.push([
   'contributions-static-dark',
   { style: 'contributions', theme: 'dark' },
+]);
+
+jobs.push([
+  'zero-stars-light',
+  { style: 'contributions', theme: 'light' },
+  ZERO_STARS,
+]);
+jobs.push([
+  'one-star-light',
+  { style: 'contributions', theme: 'light' },
+  ONE_STAR,
 ]);
 
 // Auto theme + custom palette example.
@@ -304,13 +343,31 @@ const siteAggregate = {
   ...AGGREGATE,
   metadata: aggregateMetadata(siteComparison.map((source) => source.metadata)),
 };
+const siteZeroStars = {
+  ...ZERO_STARS,
+  metadata: {
+    ...ZERO_STARS.metadata,
+    fullName: 'Synthetic demonstration: zero star',
+  },
+};
+const siteOneStar = {
+  ...ONE_STAR,
+  metadata: {
+    ...ONE_STAR.metadata,
+    fullName: 'Synthetic demonstration: one star',
+  },
+};
 for (const [name, inputs, source = SINGLE] of jobs) {
   const siteSource =
     source === AGGREGATE
       ? siteAggregate
       : Array.isArray(source)
         ? siteComparison
-        : siteComparison[0];
+        : source === ZERO_STARS
+          ? siteZeroStars
+          : source === ONE_STAR
+            ? siteOneStar
+            : siteComparison[0];
   generate(
     name,
     {

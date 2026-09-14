@@ -932,3 +932,9 @@ fetching live history.
 ## License
 
 [MIT](LICENSE) © 2026 Lee Reilly.
+
+### Edge-case examples
+
+| Zero star                                                      | One star                                                    |
+| -------------------------------------------------------------- | ----------------------------------------------------------- |
+| ![Zero star contribution chart](examples/zero-stars-light.svg) | ![One star contribution chart](examples/one-star-light.svg) |
