@@ -1,0 +1,56 @@
+name: Update star chart
+
+on:
+  schedule:
+    - cron: '17 4 * * *' # daily, off-peak UTC
+  workflow_dispatch:
+
+# Generating the chart needs no write access; committing it is a separate,
+# explicitly authorized step below.
+permissions:
+  contents: read
+
+concurrency:
+  group: update-star-chart
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # only needed to commit the regenerated SVG
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      # This repository *is* the action, so it runs locally with "./".
+      # In another repository, replace this with:
+      #   uses: leereilly/star-chart@v1   # once a v1 release is published
+      - name: Build action
+        run: |
+          npm ci
+          npm run build
+
+      - name: Generate star chart
+        uses: ./
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          output: assets/star-chart.svg
+          style: contributions
+          animation: once
+
+      - name: Commit chart if it changed
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # Stage only the chart; never sweep in unrelated changes.
+          git add assets/star-chart.svg
+          if git diff --cached --quiet; then
+            echo 'Star chart is unchanged; nothing to commit.'
+          else
+            git commit -m 'chore: update star chart'
+            git push
+          fi

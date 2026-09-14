@@ -1,0 +1,659 @@
+<!doctype html>
+<html
+  lang="en"
+  data-color-mode="auto"
+  data-light-theme="light"
+  data-dark-theme="dark"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Add a self-updating star history chart to your GitHub README with Star Chart."
+    />
+    <title>Star Chart | A star history for your README</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@primer/css@21.5.1/dist/primer.css"
+      integrity="sha384-r+NTyR1VjA+OS7VMtr8+ysZpixxpDe8NBZ6Ao+P7YlM2oyn41j2D9jlnc6v7IAmJ"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="site.css" />
+    <script type="module" src="site.mjs"></script>
+  </head>
+  <body class="color-bg-default">
+    <a href="#main" class="skip-link btn">Skip to content</a>
+    <div class="site-shell">
+      <header
+        class="d-flex flex-items-center flex-justify-between py-4 border-bottom"
+      >
+        <a
+          class="h3 color-fg-default no-underline"
+          href="./"
+          aria-label="Star Chart home"
+          ><span aria-hidden="true">★</span> Star Chart</a
+        >
+        <div class="d-flex flex-items-center site-actions">
+          <a href="https://github.com/leereilly/star-chart" class="text-small"
+            >Source</a
+          >
+          <button
+            id="theme-toggle"
+            class="btn btn-sm"
+            type="button"
+            aria-pressed="false"
+          >
+            Dark mode
+          </button>
+        </div>
+      </header>
+
+      <main id="main">
+        <section class="hero" aria-labelledby="hero-title">
+          <span class="Label mb-3">GitHub Actions + standalone SVG</span>
+          <h1 id="hero-title" class="mb-3">Your stars. In your README.</h1>
+          <p class="f3 color-fg-muted mb-4">
+            Generate a self-updating star chart and keep it in your repository.
+            No dashboard, image host, or server token.
+          </p>
+          <a
+            id="readme-cta"
+            href="https://github.com/leereilly/star-chart#30-second-setup"
+            class="btn btn-primary btn-large"
+            >Add this to your repo’s README</a
+          >
+        </section>
+
+        <figure class="Box mb-5 overflow-hidden">
+          <div class="Box-body sample">
+            <img
+              id="hero-preview"
+              src="samples/contributions-animated-once-light.svg"
+              data-light-src="samples/contributions-animated-once-light.svg"
+              data-dark-src="samples/contributions-animated-once-dark.svg"
+              width="1800"
+              height="996"
+              alt="Synthetic star history in a contribution grid, animated once"
+            />
+          </div>
+          <figcaption class="Box-footer color-bg-subtle">
+            <p class="text-small text-bold">Animated contributions</p>
+            <p class="text-small color-fg-muted mt-1">
+              Synthetic demonstration, not live star counts. The animation plays
+              once and respects reduced-motion preferences.
+              <a href="#example-gallery">Explore all examples</a>.
+            </p>
+          </figcaption>
+        </figure>
+
+        <section aria-labelledby="configure-title" class="mb-4">
+          <h2 id="configure-title" class="h3 mb-3">Make it yours</h2>
+          <p class="color-fg-muted mb-3">
+            Start with an animated GitHub-style contribution chart from day zero
+            (all available history), with light and dark versions. Choose any of
+            the 14 styles and expand the advanced settings to configure every
+            action input.
+          </p>
+          <form id="repository-form" novalidate>
+            <div class="configuration-grid">
+              <div class="form-group my-0">
+                <label for="repository">Installation repository</label>
+                <input
+                  id="repository"
+                  class="form-control width-full mt-2"
+                  type="text"
+                  value="octocat/hello-world"
+                  placeholder="owner/repository or github.com/owner/repository"
+                  spellcheck="false"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  aria-describedby="repository-help input-error"
+                  required
+                />
+                <p id="repository-help" class="note">
+                  Where the workflow and README will live. Paste a GitHub URL or
+                  owner/repo. https:// and www. are optional.
+                </p>
+              </div>
+              <div class="form-group my-0">
+                <label for="branch">Default branch</label>
+                <input
+                  id="branch"
+                  class="form-control width-full mt-2"
+                  type="text"
+                  value="main"
+                  spellcheck="false"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  aria-describedby="branch-help input-error"
+                  required
+                />
+                <p id="branch-help" class="note">
+                  Assumes main. Change this if needed; schedules run on the
+                  default branch.
+                </p>
+              </div>
+            </div>
+            <div id="chart-options"></div>
+            <p class="note mt-3">
+              Token: <code data-action-input="token">${{ github.token }}</code>
+              (fixed). The workflow uses GitHub’s automatic token. Never paste a
+              personal token here. Private source repositories must be
+              accessible to the workflow token.
+            </p>
+            <noscript
+              >Enable JavaScript to configure and generate your
+              workflow.</noscript
+            >
+            <p
+              id="input-error"
+              class="flash flash-error mt-3"
+              role="alert"
+              hidden
+            ></p>
+            <button class="btn mt-3" type="submit">Update setup</button>
+          </form>
+        </section>
+
+        <div id="generated-examples" hidden>
+          <figure class="Box mb-5 overflow-hidden">
+            <div class="Box-body sample">
+              <img
+                id="chart-preview"
+                src="samples/contributions-animated-once-light.svg"
+                width="900"
+                height="504"
+                alt="Synthetic contribution chart preview"
+              />
+            </div>
+            <figcaption class="Box-footer color-bg-subtle">
+              <p id="preview-caption" class="text-small text-bold">
+                Synthetic preview
+              </p>
+              <p class="text-small color-fg-muted mt-1">
+                Illustrative data only. This page does not fetch your stars. The
+                workflow generates your real chart.
+              </p>
+            </figcaption>
+          </figure>
+
+          <section id="setup" aria-labelledby="setup-title" class="mb-5">
+            <h2 id="setup-title" class="h2 mb-2" tabindex="-1">
+              Two steps to your README
+            </h2>
+            <p class="color-fg-muted mb-4">
+              Setup for
+              <a id="repo-link" href="https://github.com/octocat/hello-world"
+                >octocat/hello-world</a
+              >
+              on <code id="branch-name">main</code>.
+            </p>
+            <div class="setup-grid">
+              <section class="Box p-3">
+                <h3 class="h3 mb-2">1. Add the workflow</h3>
+                <p class="text-small color-fg-muted mb-3">
+                  Assumes you have access to this repository and permission to
+                  add workflows and commit changes.
+                </p>
+                <p class="mb-3">
+                  Save <code>.github/workflows/star-chart.yml</code>, then run
+                  <strong>Star Chart</strong> from the Actions tab. It updates
+                  daily and commits the SVG file(s) you selected.
+                </p>
+                <div class="site-actions d-flex flex-wrap mb-3">
+                  <a
+                    id="workflow-link"
+                    class="btn btn-primary"
+                    href="https://github.com/octocat/hello-world"
+                    >Create workflow</a
+                  >
+                  <button id="copy-workflow" class="btn" type="button">
+                    Copy workflow
+                  </button>
+                </div>
+                <details>
+                  <summary class="text-small">View workflow</summary>
+                  <pre
+                    class="snippet color-bg-subtle rounded-2 p-3 mt-3"
+                    tabindex="0"
+                    aria-label="GitHub Actions workflow"
+                  ><code id="workflow-code"></code></pre>
+                </details>
+              </section>
+              <section class="Box p-3">
+                <h3 class="h3 mb-2">2. Add the image</h3>
+                <p class="mb-3">
+                  Paste this into your root <code>README.md</code>, creating the
+                  file if needed. Images appear after the workflow commits its
+                  first chart.
+                </p>
+                <div class="site-actions d-flex flex-wrap mb-3">
+                  <a
+                    id="readme-link"
+                    class="btn"
+                    href="https://github.com/octocat/hello-world"
+                    >Open README</a
+                  >
+                  <button id="copy-readme" class="btn" type="button">
+                    Copy README snippet
+                  </button>
+                </div>
+                <pre
+                  class="snippet color-bg-subtle rounded-2 p-3"
+                  tabindex="0"
+                  aria-label="README image markup"
+                ><code id="readme-code"></code></pre>
+              </section>
+            </div>
+            <p
+              id="copy-status"
+              class="text-small mt-3"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            ></p>
+            <div class="text-small color-fg-muted mt-3">
+              <p>
+                The workflow uses the project’s <code>main</code> branch because
+                v1 is not published. Pin a reviewed commit SHA for production.
+              </p>
+              <p class="mt-2">
+                It needs permission to commit generated files. Protected
+                branches may require a pull request instead.
+                <a href="https://github.com/leereilly/star-chart#recipes"
+                  >See the full setup guide</a
+                >
+                for that workflow and all 14 chart styles.
+              </p>
+            </div>
+          </section>
+        </div>
+        <section
+          id="example-gallery"
+          aria-labelledby="gallery-title"
+          class="mb-5"
+        >
+          <h2 id="gallery-title" class="h2 mb-2">All examples</h2>
+          <p class="color-fg-muted mb-4">
+            All 14 styles, plus animation, palette, background, time window,
+            scale, and multi-repository examples. Every chart uses synthetic
+            data, not the repository entered above. Paired examples follow the
+            page theme; fixed themes and the automatic theme are labeled. These
+            examples illustrate additional options in the
+            <a href="https://github.com/leereilly/star-chart#configuration"
+              >configuration guide</a
+            >; the setup above offers every style and configuration option.
+          </p>
+          <h3 class="h3 mb-3">Chart styles</h3>
+          <div class="gallery-grid mb-4">
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/contributions-light.svg"
+                  data-light-src="samples/contributions-light.svg"
+                  data-dark-src="samples/contributions-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic contributions chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Contributions</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/line-light.svg"
+                  data-light-src="samples/line-light.svg"
+                  data-dark-src="samples/line-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic line chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Line</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/area-light.svg"
+                  data-light-src="samples/area-light.svg"
+                  data-dark-src="samples/area-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic area chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Area</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/bar-light.svg"
+                  data-light-src="samples/bar-light.svg"
+                  data-dark-src="samples/bar-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic bar chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Bar</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/sparkline-light.svg"
+                  data-light-src="samples/sparkline-light.svg"
+                  data-dark-src="samples/sparkline-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic sparkline chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Sparkline</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/grid-light.svg"
+                  data-light-src="samples/grid-light.svg"
+                  data-dark-src="samples/grid-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic grid chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Grid</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/step-line-light.svg"
+                  data-light-src="samples/step-line-light.svg"
+                  data-dark-src="samples/step-line-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic step-line chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Step line</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/milestone-scatter-light.svg"
+                  data-light-src="samples/milestone-scatter-light.svg"
+                  data-dark-src="samples/milestone-scatter-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic milestone-scatter chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Milestone scatter</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/milestone-area-light.svg"
+                  data-light-src="samples/milestone-area-light.svg"
+                  data-dark-src="samples/milestone-area-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic milestone-area chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Milestone area</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/clustered-bar-light.svg"
+                  data-light-src="samples/clustered-bar-light.svg"
+                  data-dark-src="samples/clustered-bar-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic clustered bars comparing three repositories"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Clustered bar: compare three repositories
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/neon-glow-light.svg"
+                  data-light-src="samples/neon-glow-light.svg"
+                  data-dark-src="samples/neon-glow-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic neon-glow chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Neon glow</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/neon-glow-stream-light.svg"
+                  data-light-src="samples/neon-glow-stream-light.svg"
+                  data-dark-src="samples/neon-glow-stream-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic neon-glow-stream chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Neon glow stream</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/ascii-terminal-light.svg"
+                  data-light-src="samples/ascii-terminal-light.svg"
+                  data-dark-src="samples/ascii-terminal-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic ASCII terminal chart"
+                />
+              </div>
+              <figcaption class="Box-footer">ASCII terminal</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/hand-drawn-light.svg"
+                  data-light-src="samples/hand-drawn-light.svg"
+                  data-dark-src="samples/hand-drawn-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic hand-drawn chart"
+                />
+              </div>
+              <figcaption class="Box-footer">Hand drawn</figcaption>
+            </figure>
+          </div>
+          <h3 class="h3 mb-3">Animation and configuration</h3>
+          <div class="gallery-grid mb-4">
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/contributions-animated-once-light.svg"
+                  data-light-src="samples/contributions-animated-once-light.svg"
+                  data-dark-src="samples/contributions-animated-once-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic contributions animated once"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Contributions: animate once
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/contributions-animated-loop-light.svg"
+                  data-light-src="samples/contributions-animated-loop-light.svg"
+                  data-dark-src="samples/contributions-animated-loop-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic contributions with looping animation"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Contributions: looping animation
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/contributions-static-light.svg"
+                  data-light-src="samples/contributions-static-light.svg"
+                  data-dark-src="samples/contributions-static-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic static contributions"
+                />
+              </div>
+              <figcaption class="Box-footer">Contributions: static</figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample sample-auto">
+                <img
+                  src="samples/contributions-auto-custom.svg"
+                  loading="lazy"
+                  alt="Synthetic contributions with an automatic theme and custom blue palette"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Custom blue palette: automatic theme (system preference)
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample sample-fixed-dark">
+                <img
+                  src="samples/contributions-solid-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic contributions on a solid dark background"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Solid background: contributions · Fixed dark
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample sample-fixed-light">
+                <img
+                  src="samples/line-solid-light.svg"
+                  loading="lazy"
+                  alt="Synthetic line chart on a solid light background"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Solid background: line · Fixed light
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample sample-fixed-light">
+                <img
+                  src="samples/contributions-period-3m-light.svg"
+                  loading="lazy"
+                  alt="Synthetic contributions over three months"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Three-month window · Fixed light
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample sample-fixed-dark">
+                <img
+                  src="samples/area-period-all-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic area chart over all available history"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                All-history window · Fixed dark
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample sample-fixed-light">
+                <img
+                  src="samples/line-period-3m-scale-absolute-light.svg"
+                  loading="lazy"
+                  alt="Synthetic three-month line chart with an absolute scale starting at zero"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Three months, absolute scale · Fixed light
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample sample-fixed-light">
+                <img
+                  src="samples/line-period-3m-scale-visible-light.svg"
+                  loading="lazy"
+                  alt="Synthetic three-month line chart with a visible-window scale"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Three months, visible scale · Fixed light
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample sample-fixed-light">
+                <img
+                  src="samples/line-animated-reveal-light.svg"
+                  loading="lazy"
+                  alt="Synthetic line chart with a reveal animation"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Line: reveal once · Fixed light
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample sample-fixed-dark">
+                <img
+                  src="samples/bar-animated-cascade-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic bar chart with a looping cascade animation"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Bar: looping cascade · Fixed dark
+              </figcaption>
+            </figure>
+          </div>
+          <h3 class="h3 mb-3">Multi-repository aggregates</h3>
+          <div class="gallery-grid">
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample">
+                <img
+                  src="samples/aggregate-contributions-light.svg"
+                  data-light-src="samples/aggregate-contributions-light.svg"
+                  data-dark-src="samples/aggregate-contributions-dark.svg"
+                  loading="lazy"
+                  alt="Synthetic contributions summing three repositories"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Aggregate contributions: three repositories
+              </figcaption>
+            </figure>
+            <figure class="Box overflow-hidden">
+              <div class="Box-body sample sample-fixed-light">
+                <img
+                  src="samples/aggregate-line-light.svg"
+                  loading="lazy"
+                  alt="Synthetic line chart summing three repositories"
+                />
+              </div>
+              <figcaption class="Box-footer">
+                Aggregate line: three repositories · Fixed light
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+        <noscript
+          ><p class="flash flash-warn mb-4">
+            Enable JavaScript to customize snippets, or use the
+            <a href="https://github.com/leereilly/star-chart#30-second-setup"
+              >setup guide</a
+            >.
+          </p></noscript
+        >
+      </main>
+      <footer class="border-top py-4 text-small color-fg-muted">
+        Built with <a href="https://primer.style/">GitHub Primer</a>. Free and
+        open source. Repository input stays in your browser until you open a
+        GitHub link.
+      </footer>
+    </div>
+  </body>
+</html>

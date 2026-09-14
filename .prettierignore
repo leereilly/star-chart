@@ -1,0 +1,11 @@
+dist/
+dist-types/
+build/
+coverage/
+examples/
+preview/
+node_modules/
+package-lock.json
+*.svg
+
+**/__snapshots__/
