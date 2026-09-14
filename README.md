@@ -1,8 +1,8 @@
 # Star Chart
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="examples/contributions-animated-once-dark.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="examples/contributions-animated-once-light.svg">
+  <source media="(prefers-color-scheme: light)" srcset="examples/contributions-animated-once-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="examples/contributions-animated-once-dark.svg">
   <img alt="Verified rails/rails star history snapshot, April 2008 to September 2026, rendered as a GitHub-style contribution grid" src="examples/contributions-animated-once-light.svg" width="1080">
 </picture>
 
