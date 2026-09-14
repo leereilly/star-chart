@@ -1,7 +1,7 @@
 import type { ChartModel, NormalizedHistory, RepositoryMetadata } from '../models/index.js';
 import { type ChartConfigInput } from '../config/defaults.js';
 export interface BuildOptions {
-    /** Injected clock (epoch ms) used for empty-window fallbacks. */
+    /** Injected clock (epoch ms), also the end of creation-to-now timelines. */
     readonly asOf: number;
 }
 /**

@@ -226,7 +226,7 @@ describe('peak gain', () => {
     const adds = [3, 3, 3, 3, 3, 9, 3, 3, 3, 3, 3, 3];
     const history = historyFromAdds(adds);
     const model = buildChartModel(
-      makeConfig({ columns: '3' }),
+      makeConfig({ columns: '3', weeks: '12' }),
       makeMetadata(),
       history,
       { asOf: FIXED_NOW },
@@ -245,7 +245,10 @@ describe('peak gain', () => {
       { asOf: FIXED_NOW },
     );
     expect(model.peakGain).toBe(0);
-    expect(model.selectedWeeks).toEqual([]);
+    expect(model.selectedWeeks.length).toBeGreaterThan(52);
+    expect(model.selectedWeeks.every((w) => w.added === 0 && w.synthetic)).toBe(
+      true,
+    );
   });
 
   it('only considers weeks inside the selected window', () => {

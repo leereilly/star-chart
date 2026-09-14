@@ -8,6 +8,7 @@ import type { ChartConfigInput } from '../config/defaults.js';
 import { utcWeekStart } from '../utils/dates.js';
 import { aggregateHistories, aggregateMetadata } from './aggregate.js';
 import { buildChartModel, type BuildOptions } from './model.js';
+import { creationHistory } from './lifetime.js';
 
 /**
  * Align the complete histories first, then select and bucket every series on
@@ -20,6 +21,33 @@ export function buildMultiRepositoryChartModel(
   options: BuildOptions,
 ): ChartModel {
   const metadata = aggregateMetadata(sources.map((source) => source.metadata));
+  if (config.period === 'all') {
+    const histories = sources.map((source) =>
+      creationHistory(
+        source.history,
+        source.metadata.createdAt,
+        options.asOf,
+        Date.parse(metadata.createdAt),
+      ),
+    );
+    const model = buildChartModel(
+      config,
+      metadata,
+      aggregateHistories(histories),
+      options,
+    );
+    return {
+      ...model,
+      series: sources.map((source, index) => {
+        const history = histories[index];
+        if (!history) throw new Error('Missing aligned repository history.');
+        return repositorySeries({
+          ...buildChartModel(config, metadata, history, options),
+          metadata: source.metadata,
+        });
+      }),
+    };
+  }
   const history = aggregateHistories(sources.map((source) => source.history));
   const model = buildChartModel(config, metadata, history, options);
   const series: RepositorySeries[] = sources.map((source) => {

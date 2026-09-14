@@ -1359,7 +1359,7 @@ function resolveWeeks(raw, warn) {
   const rawPeriod = firstNonEmpty(raw.period);
   const rawWeeks = firstNonEmpty(raw.weeks);
   if (rawPeriod !== void 0) {
-    const period = parseEnum("period", rawPeriod, PERIODS, "1y");
+    const period = parseEnum("period", rawPeriod, PERIODS, "all");
     if (rawWeeks !== void 0) {
       warn(
         'Both "period" and "weeks" were supplied; "period" takes precedence.'
@@ -1374,7 +1374,7 @@ function resolveWeeks(raw, warn) {
     const weeks = parseInteger("weeks", rawWeeks, 52, 1, MAX_WEEKS);
     return { weeks, period: null };
   }
-  return { weeks: PERIOD_WEEKS["1y"], period: "1y" };
+  return { weeks: MAX_WEEKS, period: "all" };
 }
 function resolveBackground(raw, warn) {
   const rawMode = firstNonEmpty(raw.background_mode);
@@ -2771,7 +2771,7 @@ function selectWindow(history, config) {
       hasSyntheticWeeks: history.hasSyntheticWeeks
     };
   }
-  const count = Math.min(config.weeks, total);
+  const count = config.period === "all" ? total : Math.min(config.weeks, total);
   const startIndex = total - count;
   const baseline = startIndex > 0 ? history.cumulative[startIndex - 1] ?? 0 : 0;
   const weeks = history.weeks.slice(startIndex);
@@ -2787,7 +2787,7 @@ function selectWindow(history, config) {
 }
 
 // src/history/bucket.ts
-function bucketWindow(window, columns, baseline) {
+function bucketWindow(window, columns, baseline, rangeEnd) {
   if (columns < 1) {
     throw new Error("columns must be >= 1");
   }
@@ -2796,6 +2796,9 @@ function bucketWindow(window, columns, baseline) {
   const n = weeks.length;
   if (n === 0) {
     return emptyBuckets(columns, baseline);
+  }
+  if (rangeEnd !== void 0) {
+    return calendarBuckets(window, columns, baseline, rangeEnd);
   }
   const buckets = [];
   let previousCumulative = baseline;
@@ -2841,6 +2844,33 @@ function bucketWindow(window, columns, baseline) {
   }
   return buckets;
 }
+function calendarBuckets(window, columns, baseline, rangeEnd) {
+  const rangeStart = window.weeks[0]?.time ?? rangeEnd;
+  const boundary = (index) => Math.round(rangeStart + (rangeEnd - rangeStart) * index / columns);
+  let cursor = 0;
+  let cumulative = baseline;
+  return Array.from({ length: columns }, (_, index) => {
+    const endTime = boundary(index + 1);
+    const start = cursor;
+    let added = 0;
+    while (cursor < window.weeks.length) {
+      const week = window.weeks[cursor];
+      if (!week) break;
+      const observationEnd = window.weeks[cursor + 1]?.time ?? rangeEnd;
+      if (observationEnd > endTime) break;
+      added += week.added;
+      cumulative = window.cumulative[cursor] ?? cumulative + week.added;
+      cursor += 1;
+    }
+    return {
+      startTime: boundary(index),
+      endTime,
+      observations: cursor - start,
+      added,
+      cumulative
+    };
+  });
+}
 function emptyBuckets(columns, baseline) {
   const buckets = [];
   for (let j = 0; j < columns; j += 1) {
@@ -2855,6 +2885,48 @@ function emptyBuckets(columns, baseline) {
   return buckets;
 }
 
+// src/history/lifetime.ts
+function creationHistory(history, createdAt, asOf, rangeStart = Date.parse(createdAt)) {
+  const created = Date.parse(createdAt);
+  if (!Number.isFinite(created) || !Number.isFinite(asOf) || created > asOf) {
+    throw new HistoryError(`Invalid repository creation range: ${createdAt}.`);
+  }
+  const first = utcWeekStart(created);
+  const last = utcWeekStart(asOf);
+  const byWeek = /* @__PURE__ */ new Map();
+  for (const week of history.weeks) {
+    const key = utcWeekStart(week.time);
+    if (key < first || key > last) continue;
+    const previous = byWeek.get(key);
+    byWeek.set(key, {
+      added: (previous?.added ?? 0) + week.added,
+      synthetic: previous ? previous.synthetic && week.synthetic : week.synthetic
+    });
+  }
+  const weeks = [];
+  const cumulative = [];
+  let running = 0;
+  for (let key = utcWeekStart(rangeStart); key <= last; key += MS_PER_WEEK) {
+    const observation = byWeek.get(key);
+    const time = Math.max(rangeStart, key);
+    const added = observation?.added ?? 0;
+    running += added;
+    weeks.push({
+      time,
+      timestamp: new Date(time).toISOString(),
+      added,
+      synthetic: observation?.synthetic ?? key >= first
+    });
+    cumulative.push(running);
+  }
+  return {
+    weeks,
+    cumulative,
+    totalAdded: running,
+    hasSyntheticWeeks: history.hasSyntheticWeeks || weeks.some((week) => week.synthetic)
+  };
+}
+
 // src/history/model.ts
 var PERIOD_LABELS = {
   "3m": "3 months",
@@ -2866,8 +2938,15 @@ var PERIOD_LABELS = {
 };
 function buildChartModel(rawConfig, metadata, history, options) {
   const config = normalizeChartConfig(rawConfig);
-  const window = selectWindow(history, config);
-  const buckets = bucketWindow(window, config.columns, window.baseline);
+  const all = config.period === "all";
+  const timeline = all ? creationHistory(history, metadata.createdAt, options.asOf) : history;
+  const window = selectWindow(timeline, config);
+  const buckets = bucketWindow(
+    window,
+    config.columns,
+    window.baseline,
+    all ? options.asOf : void 0
+  );
   const windowMax = buckets.reduce(
     (max2, bucket) => Math.max(max2, bucket.cumulative),
     window.baseline
@@ -2875,9 +2954,9 @@ function buildChartModel(rawConfig, metadata, history, options) {
   const firstWeek = window.weeks[0];
   const lastWeek = window.weeks[window.weeks.length - 1];
   const periodStart = firstWeek ? isoDate(firstWeek.time) : isoDate(Date.parse(metadata.createdAt));
-  const periodEnd = lastWeek ? isoDate(lastWeek.time) : isoDate(options.asOf);
+  const periodEnd = !all && lastWeek ? isoDate(lastWeek.time) : isoDate(options.asOf);
   const periodLabel = config.period ? PERIOD_LABELS[config.period] : `${config.weeks} weeks`;
-  const isEmpty = history.totalAdded === 0;
+  const isEmpty = timeline.totalAdded === 0;
   const peakGain = window.weeks.reduce(
     (max2, week) => Math.max(max2, week.added),
     0
@@ -3025,6 +3104,33 @@ function aggregateDisplayName(entries) {
 // src/history/multi.ts
 function buildMultiRepositoryChartModel(config, sources, options) {
   const metadata = aggregateMetadata(sources.map((source) => source.metadata));
+  if (config.period === "all") {
+    const histories = sources.map(
+      (source) => creationHistory(
+        source.history,
+        source.metadata.createdAt,
+        options.asOf,
+        Date.parse(metadata.createdAt)
+      )
+    );
+    const model2 = buildChartModel(
+      config,
+      metadata,
+      aggregateHistories(histories),
+      options
+    );
+    return {
+      ...model2,
+      series: sources.map((source, index) => {
+        const history2 = histories[index];
+        if (!history2) throw new Error("Missing aligned repository history.");
+        return repositorySeries({
+          ...buildChartModel(config, metadata, history2, options),
+          metadata: source.metadata
+        });
+      })
+    };
+  }
   const history = aggregateHistories(sources.map((source) => source.history));
   const model = buildChartModel(config, metadata, history, options);
   const series = sources.map((source) => {
@@ -4860,13 +4966,14 @@ function buildFrame(model, options) {
   }
   const n = model.buckets.length;
   const bars = cfg.style === "bar" || options.centered === true;
+  const observationDomain = options.observationDomain || cfg.period === "all";
   const times = model.buckets.map(
     (b) => bars ? (b.startTime + b.endTime) / 2 : b.endTime
   );
-  const hasTimes = times.every((t) => t > 0) && (n > 1 || options.observationDomain === true && n === 1);
+  const hasTimes = times.every((t) => t > 0) && (n > 1 || observationDomain && n === 1);
   const slot = plotWidth / Math.max(1, n);
   const xScale = hasTimes ? utcTime().domain(
-    bars || options.observationDomain ? [
+    bars || observationDomain ? [
       model.buckets[0]?.startTime ?? 0,
       model.buckets[n - 1]?.endTime ?? 1
     ] : [times[0] ?? 0, times[n - 1] ?? 1]
@@ -5648,7 +5755,7 @@ function stepAfter(context) {
 
 // src/renderers/charts.ts
 function chartCurve(model) {
-  const sparse = model.buckets.some((b) => b.observations === 0);
+  const sparse = model.buckets.some((b) => b.observations === 0) || model.config.period === "all" && model.hasSyntheticWeeks;
   return sparse ? stepAfter : monotoneX;
 }
 function toLayout(frame) {
@@ -5730,8 +5837,8 @@ function commonBody(model, frame, plot, xAxis = renderXAxis(frame)) {
   return renderHeader(model, layout) + renderLegend(model) + xAxis + plot + renderDates(
     model,
     layout,
-    frame.xForIndex,
-    (index) => frame.points[index]?.time ?? 0
+    model.config.period === "all" ? (index) => frame.xForTime(model.buckets[index]?.startTime ?? 0) : frame.xForIndex,
+    (index) => model.config.period === "all" ? model.buckets[index]?.startTime ?? 0 : frame.points[index]?.time ?? 0
   ) + renderLogo(model, layout);
 }
 function renderLine(model) {
@@ -6013,7 +6120,7 @@ function observationPoints(model, frame) {
   let cumulative = model.baseline;
   return model.selectedWeeks.map((week, index) => {
     cumulative += week.added;
-    const time = model.selectedWeeks[index + 1]?.time ?? week.time + MS_PER_WEEK;
+    const time = model.selectedWeeks[index + 1]?.time ?? (model.config.period === "all" ? model.buckets.at(-1)?.endTime ?? week.time : week.time + MS_PER_WEEK);
     return {
       index,
       time,

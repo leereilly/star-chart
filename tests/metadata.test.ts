@@ -143,34 +143,43 @@ describe('action.yml metadata', () => {
 });
 
 describe('example generator fixtures', () => {
-  it('uses Rails repositories for default and edge-case source metadata', () => {
+  it('loads frozen Rails data and keeps synthetic edges explicitly separate', () => {
     expect(generator).toContain("repository: 'rails/rails'");
-    expect(generator).toContain("owner: 'rails'");
-    expect(generator).toContain("repo: 'rails'");
-    expect(generator).toContain("fullName: 'rails/rails'");
+    expect(generator).toContain("from './example-data.mjs'");
+    expect(generator).toContain('const [SINGLE] = SOURCES');
+    expect(generator).toContain("owner: 'sample'");
+    expect(generator).toContain('Synthetic demonstration:');
+    expect(generator).not.toContain('syntheticRaw');
     expect(generator).not.toContain("repository: 'leereilly/star-chart'");
     expect(generator).not.toContain('fullName: `sample/${name}`');
   });
 
   it('aggregates rails, propshaft, and sprockets-rails in stable order', () => {
-    const rails = generator.indexOf("fullName: 'rails/rails'");
-    const propshaft = generator.indexOf("fullName: 'rails/propshaft'");
-    const sprockets = generator.indexOf("fullName: 'rails/sprockets-rails'");
-
-    expect(rails).toBeGreaterThan(-1);
-    expect(propshaft).toBeGreaterThan(rails);
-    expect(sprockets).toBeGreaterThan(propshaft);
+    const snapshot = JSON.parse(
+      readFileSync('scripts/fixtures/github-star-history.json', 'utf8'),
+    );
+    expect(
+      snapshot.repositories.map(
+        (source: { metadata: { fullName: string } }) =>
+          source.metadata.fullName,
+      ),
+    ).toEqual(['rails/rails', 'rails/propshaft', 'rails/sprockets-rails']);
+    expect(generator).toContain('const COMPARISON = SOURCES');
+    expect(generator).toContain(
+      'aggregateHistories(SOURCES.map((source) => source.history))',
+    );
   });
 
   it('brands generated sources without leaking the former fixture', () => {
-    for (const name of [
-      'contributions-light.svg',
-      'zero-stars-light.svg',
-      'one-star-light.svg',
-    ]) {
-      expect(readFileSync(`examples/${name}`, 'utf8')).toContain(
-        '<title id="sc-contributions-title">rails/rails</title>',
+    expect(readFileSync('examples/contributions-light.svg', 'utf8')).toContain(
+      'rails/rails | GitHub snapshot',
+    );
+    for (const name of ['zero-stars-light.svg', 'one-star-light.svg']) {
+      const svg = readFileSync(`examples/${name}`, 'utf8');
+      expect(svg).toContain(
+        '<title id="sc-contributions-title">Synthetic demonstration:',
       );
+      expect(svg).not.toContain('rails/rails');
     }
 
     const comparison = readFileSync('examples/clustered-bar-light.svg', 'utf8');

@@ -308,7 +308,7 @@ function resolveWeeks(
   const rawWeeks = firstNonEmpty(raw.weeks);
 
   if (rawPeriod !== undefined) {
-    const period = parseEnum('period', rawPeriod, PERIODS, '1y');
+    const period = parseEnum('period', rawPeriod, PERIODS, 'all');
     if (rawWeeks !== undefined) {
       warn(
         'Both "period" and "weeks" were supplied; "period" takes precedence.',
@@ -325,7 +325,7 @@ function resolveWeeks(
     return { weeks, period: null };
   }
 
-  return { weeks: PERIOD_WEEKS['1y'], period: '1y' };
+  return { weeks: MAX_WEEKS, period: 'all' };
 }
 
 /**

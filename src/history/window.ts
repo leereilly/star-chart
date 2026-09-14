@@ -25,7 +25,7 @@ export function selectWindow(
     };
   }
 
-  const count = Math.min(config.weeks, total);
+  const count = config.period === 'all' ? total : Math.min(config.weeks, total);
   const startIndex = total - count;
   const baseline =
     startIndex > 0 ? (history.cumulative[startIndex - 1] ?? 0) : 0;

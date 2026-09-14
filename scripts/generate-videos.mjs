@@ -1,7 +1,9 @@
 import { spawnSync } from 'node:child_process';
+import assert from 'node:assert/strict';
 import { copyFileSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildChartModel, parseInputs, renderChartGif } from '../dist/lib.js';
+import { SNAPSHOT_LABEL, snapshot } from './example-data.mjs';
 
 function ffmpeg(args) {
   const result = spawnSync(
@@ -28,6 +30,7 @@ export async function generateVideos(root, source, asOf) {
     for (const theme of ['light', 'dark']) {
       const { config } = parseInputs({
         repository: 'rails/rails',
+        title: `rails/rails | ${SNAPSHOT_LABEL}`,
         style: 'contributions',
         theme,
         width: '1800',
@@ -44,6 +47,16 @@ export async function generateVideos(root, source, asOf) {
       const model = buildChartModel(config, source.metadata, source.history, {
         asOf,
       });
+      assert.equal(model.periodStart, source.metadata.createdAt.slice(0, 10));
+      assert.equal(model.periodEnd, new Date(asOf).toISOString().slice(0, 10));
+      assert.equal(
+        model.buckets[0]?.startTime,
+        Date.parse(source.metadata.createdAt),
+      );
+      assert.equal(model.buckets.at(-1)?.endTime, asOf);
+      assert.equal(model.currentStars, source.metadata.stargazersCount);
+      assert.equal(model.buckets.at(-1)?.cumulative, source.history.totalAdded);
+      assert.equal(model.buckets.length, 52);
       const gif = await renderChartGif(model, { width: 1080, fps: 20 });
       writeFileSync(join(work, `${theme}.gif`), gif.buffer);
       ffmpeg([
@@ -88,7 +101,9 @@ export async function generateVideos(root, source, asOf) {
       '-metadata',
       'title=rails/rails star history — light to dark',
       '-metadata',
-      'comment=Deterministic synthetic example generated with leereilly/star-chart',
+      `comment=${SNAPSHOT_LABEL}; https://api.github.com/repos/rails/rails/stargazers/history; ` +
+        `${source.metadata.stargazersCount} current stars; ${source.history.totalAdded} recorded stars; ` +
+        `asOf=${snapshot.asOf}; native weekly data, not an unstar ledger`,
       output,
     ]);
     // Keep the existing candidate and primary cut on the same current render.
@@ -121,7 +136,8 @@ export async function generateVideos(root, source, asOf) {
       join(validation, 'candidate-02.png'),
     );
     console.log(
-      'Generated both Rails social MP4s (1080×588, 30 fps, 11.6s) and validation PNGs.',
+      `Generated both Rails social MP4s (1080×588, 30 fps, 11.6s) and validation PNGs; ` +
+        `GitHub snapshot range ${source.metadata.createdAt.slice(0, 10)} to ${new Date(asOf).toISOString().slice(0, 10)}.`,
     );
   } finally {
     rmSync(work, { recursive: true, force: true });

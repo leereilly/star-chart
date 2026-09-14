@@ -56,13 +56,14 @@ inputs:
   period:
     description: >-
       Time window: 3m, 6m, 1y, 2y, 5y, or all. Takes precedence over "weeks".
-      Effective default when both are empty is 1y (52 weeks).
+      Effective default when both are empty is all: repository creation to now,
+      using available recorded history.
     required: false
     default: ''
   weeks:
     description: >-
       Explicit number of trailing weeks to display. Ignored when "period" is
-      set. Effective default is 52.
+      set. When both are empty, charts span repository creation to now.
     required: false
     default: ''
   columns:

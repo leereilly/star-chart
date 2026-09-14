@@ -190,7 +190,11 @@ describe('run orchestration', () => {
     expect(captured.outputs.chart_path).toBe('out/chart.svg');
     expect(captured.outputs.stars).toBe('321');
     expect(captured.outputs.stars_added).toBe('10');
-    expect(captured.outputs.period_start).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(captured.outputs.period_start).toBe(
+      new Date(FIXED_NOW - 60 * MS_WEEK).toISOString().slice(0, 10),
+    );
+    expect(captured.outputs.period_end).toBe('2026-09-06');
+    expect(captured.warnings.join(' ')).toContain('no recorded data');
     expect(captured.secrets).toContain('secrettoken');
     expect(fs.existsSync(path.join(workspace, 'out/chart.svg'))).toBe(true);
   });

@@ -565,7 +565,11 @@ describe('documentation website', () => {
       expect(file).toMatch(/^[\w-]+\.svg$/);
       const svg = readFileSync(`docs/samples/${file}`, 'utf8');
       expect(checkSvg(svg).errors, file).toEqual([]);
-      expect(svg).toContain('Synthetic demonstration');
+      expect(svg).toContain(
+        /^(zero-stars|one-star)-/.test(file)
+          ? 'Synthetic demonstration'
+          : 'GitHub snapshot',
+      );
       expect(svg).not.toContain('leereilly/star-chart');
     }
   });
@@ -812,7 +816,7 @@ describe('documentation website', () => {
     expect(html).toContain('Add this to your repo’s README');
     expect(html).toContain('for="repository"');
     expect(html).toContain('aria-live="polite"');
-    expect(html).toContain('Synthetic');
+    expect(html).toContain('Authentic rails/rails GitHub snapshot');
     expect(html).not.toContain('\u2014');
     expect(readFileSync('docs/site.mjs', 'utf8')).not.toContain('\u2014');
   });
@@ -829,12 +833,12 @@ describe('documentation website', () => {
     expect(document.getElementById('theme-toggle')).not.toBeNull();
   });
 
-  it('ships valid theme-matched previews with no repository-specific fixture branding', () => {
+  it('ships valid theme-matched previews with honest snapshot branding', () => {
     for (const style of ['contributions', 'line', 'neon-glow']) {
       for (const theme of ['light', 'dark']) {
         const svg = readFileSync(`docs/samples/${style}-${theme}.svg`, 'utf8');
         expect(checkSvg(svg).errors).toEqual([]);
-        expect(svg).toContain('Synthetic demonstration');
+        expect(svg).toContain('rails/rails | GitHub snapshot');
         expect(svg).not.toContain('leereilly/star-chart');
       }
     }
@@ -878,10 +882,10 @@ describe('documentation website', () => {
               .join('|'),
           );
       expect(geometry(svg), name).toEqual(geometry(original));
-      expect(svg).toContain('Synthetic demonstration + 2 more repositories');
+      expect(svg).toContain('rails/rails + 2 more repositories');
       if (name.startsWith('clustered-bar')) {
-        expect(svg).toContain('Synthetic demonstration 2');
-        expect(svg).toContain('Synthetic demonstration 3');
+        expect(svg).toContain('rails/propshaft');
+        expect(svg).toContain('rails/sprockets-rails');
       }
     }
   });

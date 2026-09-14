@@ -208,7 +208,10 @@ function observationPoints(model: ChartModel, frame: PlotFrame): PlotPoint[] {
   return model.selectedWeeks.map((week, index) => {
     cumulative += week.added;
     const time =
-      model.selectedWeeks[index + 1]?.time ?? week.time + MS_PER_WEEK;
+      model.selectedWeeks[index + 1]?.time ??
+      (model.config.period === 'all'
+        ? (model.buckets.at(-1)?.endTime ?? week.time)
+        : week.time + MS_PER_WEEK);
     return {
       index,
       time,

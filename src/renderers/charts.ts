@@ -47,7 +47,9 @@ import {
 export function chartCurve(model: ChartModel): CurveFactory {
   // Empty sub-week slots carry the last observation: do not interpolate growth
   // through them. A jump at the next interval endpoint denotes recorded data.
-  const sparse = model.buckets.some((b) => b.observations === 0);
+  const sparse =
+    model.buckets.some((b) => b.observations === 0) ||
+    (model.config.period === 'all' && model.hasSyntheticWeeks);
   return sparse ? curveStepAfter : curveMonotoneX;
 }
 
@@ -177,8 +179,13 @@ export function commonBody(
     renderDates(
       model,
       layout,
-      frame.xForIndex,
-      (index) => frame.points[index]?.time ?? 0,
+      model.config.period === 'all'
+        ? (index) => frame.xForTime(model.buckets[index]?.startTime ?? 0)
+        : frame.xForIndex,
+      (index) =>
+        model.config.period === 'all'
+          ? (model.buckets[index]?.startTime ?? 0)
+          : (frame.points[index]?.time ?? 0),
     ) +
     renderLogo(model, layout)
   );

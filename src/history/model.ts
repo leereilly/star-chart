@@ -11,9 +11,10 @@ import {
 import { isoDate } from '../utils/dates.js';
 import { bucketWindow } from './bucket.js';
 import { selectWindow } from './window.js';
+import { creationHistory } from './lifetime.js';
 
 export interface BuildOptions {
-  /** Injected clock (epoch ms) used for empty-window fallbacks. */
+  /** Injected clock (epoch ms), also the end of creation-to-now timelines. */
   readonly asOf: number;
 }
 
@@ -40,8 +41,17 @@ export function buildChartModel(
   options: BuildOptions,
 ): ChartModel {
   const config = normalizeChartConfig(rawConfig);
-  const window = selectWindow(history, config);
-  const buckets = bucketWindow(window, config.columns, window.baseline);
+  const all = config.period === 'all';
+  const timeline = all
+    ? creationHistory(history, metadata.createdAt, options.asOf)
+    : history;
+  const window = selectWindow(timeline, config);
+  const buckets = bucketWindow(
+    window,
+    config.columns,
+    window.baseline,
+    all ? options.asOf : undefined,
+  );
 
   const windowMax = buckets.reduce(
     (max, bucket) => Math.max(max, bucket.cumulative),
@@ -53,13 +63,14 @@ export function buildChartModel(
   const periodStart = firstWeek
     ? isoDate(firstWeek.time)
     : isoDate(Date.parse(metadata.createdAt));
-  const periodEnd = lastWeek ? isoDate(lastWeek.time) : isoDate(options.asOf);
+  const periodEnd =
+    !all && lastWeek ? isoDate(lastWeek.time) : isoDate(options.asOf);
 
   const periodLabel = config.period
     ? PERIOD_LABELS[config.period]
     : `${config.weeks} weeks`;
 
-  const isEmpty = history.totalAdded === 0;
+  const isEmpty = timeline.totalAdded === 0;
 
   const peakGain = window.weeks.reduce(
     (max, week) => Math.max(max, week.added),

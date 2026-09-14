@@ -95,18 +95,18 @@ export function buildFrame(
 
   const n = model.buckets.length;
   const bars = cfg.style === 'bar' || options.centered === true;
+  const observationDomain = options.observationDomain || cfg.period === 'all';
   const times = model.buckets.map((b) =>
     bars ? (b.startTime + b.endTime) / 2 : b.endTime,
   );
   const hasTimes =
-    times.every((t) => t > 0) &&
-    (n > 1 || (options.observationDomain === true && n === 1));
+    times.every((t) => t > 0) && (n > 1 || (observationDomain && n === 1));
   const slot = plotWidth / Math.max(1, n);
 
   const xScale = hasTimes
     ? scaleUtc()
         .domain(
-          bars || options.observationDomain
+          bars || observationDomain
             ? [
                 model.buckets[0]?.startTime ?? 0,
                 model.buckets[n - 1]?.endTime ?? 1,

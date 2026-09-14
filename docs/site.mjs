@@ -59,7 +59,7 @@ const GROUPS = [
         'History window',
         'all',
         ['3m', '6m', '1y', '2y', '5y', 'all', 'custom'],
-        'All available history starts at day zero, within GitHub’s available history (up to 3,000 weeks).',
+        'Default: repository creation to now, using available recorded history. Missing coverage is flagged, not verified zero growth.',
       ),
       integer('weeks', 'Custom trailing weeks', '', 1, 3000),
       choice('animation', 'Animation', 'once', ['none', 'once', 'loop']),
@@ -623,13 +623,13 @@ export function updateExamples(document, example, theme) {
   );
   get('chart-preview').setAttribute(
     'alt',
-    `Synthetic ${example.style} illustration for ${example.options.repositories || example.options.repository}`,
+    `Frozen GitHub Rails ${example.style} snapshot. Setup for ${example.options.repositories || example.options.repository}`,
   );
   get('preview-caption').textContent =
-    `Synthetic ${example.style} illustration for ${example.options.repositories || example.options.repository}. ` +
+    `Frozen GitHub Rails ${example.style} snapshot. Setup for ${example.options.repositories || example.options.repository}. ` +
     `This sample does not render your settings or full history. The workflow uses ${
       example.options.period === 'all'
-        ? 'all available history from day zero'
+        ? 'repository creation to now, using available recorded history'
         : example.options.period || `${example.options.weeks} trailing weeks`
     }.`;
 }
@@ -685,7 +685,7 @@ function createControls(document) {
                 ? 'Style default'
                 : 'Inferred'
               : value === 'all'
-                ? 'All available history (day zero)'
+                ? 'Repository creation to now (default)'
                 : value === 'custom'
                   ? 'Custom weeks'
                   : value;

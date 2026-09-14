@@ -155,7 +155,7 @@ describe('new chart styles', () => {
   });
 
   it('neon preserves sparse staircase growth and keeps halo bounds local', () => {
-    const m = model('neon-glow', [1, 10], { animation: 'once' });
+    const m = model('neon-glow', [1, 10], { animation: 'once', weeks: '2' });
     const svg = renderChart(m).svg;
     expect(svg.match(/data-chart="neon-glow" d="([^"]+)"/)?.[1]).not.toMatch(
       /[CQ]/,

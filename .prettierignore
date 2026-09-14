@@ -9,3 +9,4 @@ package-lock.json
 *.svg
 
 **/__snapshots__/
+scripts/fixtures/github-star-history.json

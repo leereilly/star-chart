@@ -3,7 +3,8 @@ import { MS_PER_WEEK } from '../utils/dates.js';
 
 /**
  * Aggregates the selected weekly window into `columns` display buckets using
- * monotone integer partition boundaries `floor(j*N/K)`.
+ * monotone integer partition boundaries `floor(j*N/K)`. With a full-range end,
+ * use equal-duration calendar intervals from creation through that instant.
  *
  * Each bucket keeps the summed additions and the cumulative value at its end.
  * When there are more columns than observations (`K > N`), empty buckets carry
@@ -13,6 +14,7 @@ export function bucketWindow(
   window: WindowSelection,
   columns: number,
   baseline: number,
+  rangeEnd?: number,
 ): Bucket[] {
   if (columns < 1) {
     throw new Error('columns must be >= 1');
@@ -24,6 +26,10 @@ export function bucketWindow(
   if (n === 0) {
     // Empty window: emit flat baseline buckets so the grid renders as zero.
     return emptyBuckets(columns, baseline);
+  }
+
+  if (rangeEnd !== undefined) {
+    return calendarBuckets(window, columns, baseline, rangeEnd);
   }
 
   const buckets: Bucket[] = [];
@@ -76,6 +82,41 @@ export function bucketWindow(
   }
 
   return buckets;
+}
+
+/** Equal-duration full-range buckets, with partial boundary weeks clipped. */
+function calendarBuckets(
+  window: WindowSelection,
+  columns: number,
+  baseline: number,
+  rangeEnd: number,
+): Bucket[] {
+  const rangeStart = window.weeks[0]?.time ?? rangeEnd;
+  const boundary = (index: number): number =>
+    Math.round(rangeStart + ((rangeEnd - rangeStart) * index) / columns);
+  let cursor = 0;
+  let cumulative = baseline;
+  return Array.from({ length: columns }, (_, index) => {
+    const endTime = boundary(index + 1);
+    const start = cursor;
+    let added = 0;
+    while (cursor < window.weeks.length) {
+      const week = window.weeks[cursor];
+      if (!week) break;
+      const observationEnd = window.weeks[cursor + 1]?.time ?? rangeEnd;
+      if (observationEnd > endTime) break;
+      added += week.added;
+      cumulative = window.cumulative[cursor] ?? cumulative + week.added;
+      cursor += 1;
+    }
+    return {
+      startTime: boundary(index),
+      endTime,
+      observations: cursor - start,
+      added,
+      cumulative,
+    };
+  });
 }
 
 function emptyBuckets(columns: number, baseline: number): Bucket[] {

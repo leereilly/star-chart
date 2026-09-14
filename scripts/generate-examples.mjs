@@ -11,77 +11,22 @@ import {
   renderStarChart,
   renderMultiRepositoryStarChart,
 } from '../dist/lib.js';
+import { AS_OF, SOURCES, SNAPSHOT_LABEL, snapshot } from './example-data.mjs';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const outDir = join(root, 'examples');
 mkdirSync(outDir, { recursive: true });
 
 const WEEK = 7 * 86400000;
-const AS_OF = Date.UTC(2026, 8, 6); // fixed clock for reproducibility
-
-// Deterministic synthetic history: ~120 weeks of organic-looking growth.
-function syntheticRaw(weeks, seedValue = 1337, scale = 1) {
-  const start = AS_OF - (weeks - 1) * WEEK;
-  const raw = [];
-  let seed = seedValue;
-  const rand = () => {
-    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-    return seed / 0x7fffffff;
-  };
-  for (let i = 0; i < weeks; i += 1) {
-    const trend = Math.max(0, Math.round(2 + i * 0.15 + 6 * Math.sin(i / 7)));
-    const noise = Math.round(rand() * 3);
-    const total = Math.max(0, Math.round((trend + noise) * scale));
-    raw.push({
-      timestamp: new Date(start + i * WEEK).toISOString(),
-      total,
-      days: [total, 0, 0, 0, 0, 0, 0],
-    });
-  }
-  return raw;
-}
-
-const RAW = syntheticRaw(120);
-
-const metadata = {
-  owner: 'rails',
-  repo: 'rails',
-  fullName: 'rails/rails',
-  createdAt: new Date(AS_OF - 119 * WEEK).toISOString(),
-  stargazersCount: 2048,
-};
-
-// A second and third repository, aggregated into the "aggregate-*" examples.
-const SIBLING_RAW = syntheticRaw(96, 90210, 0.6);
-const THIRD_RAW = syntheticRaw(72, 4711, 0.35);
-
-const siblingMetadata = {
-  owner: 'rails',
-  repo: 'propshaft',
-  fullName: 'rails/propshaft',
-  createdAt: new Date(AS_OF - 95 * WEEK).toISOString(),
-  stargazersCount: 734,
-};
-
-const thirdMetadata = {
-  owner: 'rails',
-  repo: 'sprockets-rails',
-  fullName: 'rails/sprockets-rails',
-  createdAt: new Date(AS_OF - 71 * WEEK).toISOString(),
-  stargazersCount: 256,
-};
-
-const SINGLE = {
-  metadata,
-  history: normalizeHistory(RAW, { asOf: AS_OF }),
-};
+const [SINGLE] = SOURCES;
+const { metadata } = SINGLE;
 
 function edgeCaseSource(total) {
   return {
     metadata: {
-      owner: 'rails',
-      repo: 'rails',
-      fullName: 'rails/rails',
+      owner: 'sample',
+      repo: total === 0 ? 'zero-stars' : 'one-star',
+      fullName: `Synthetic demonstration: ${total === 0 ? 'zero' : 'one'} star`,
       createdAt: new Date(AS_OF - WEEK).toISOString(),
       stargazersCount: total,
     },
@@ -104,34 +49,45 @@ const ZERO_STARS = edgeCaseSource(0);
 const ONE_STAR = edgeCaseSource(1);
 
 const AGGREGATE = {
-  metadata: aggregateMetadata([metadata, siblingMetadata, thirdMetadata]),
-  history: aggregateHistories([
-    normalizeHistory(RAW, { asOf: AS_OF }),
-    normalizeHistory(SIBLING_RAW, { asOf: AS_OF }),
-    normalizeHistory(THIRD_RAW, { asOf: AS_OF }),
-  ]),
+  metadata: aggregateMetadata(SOURCES.map((source) => source.metadata)),
+  history: aggregateHistories(SOURCES.map((source) => source.history)),
 };
 
-const COMPARISON = [
-  SINGLE,
-  {
-    metadata: siblingMetadata,
-    history: normalizeHistory(SIBLING_RAW, { asOf: AS_OF }),
-  },
-  {
-    metadata: thirdMetadata,
-    history: normalizeHistory(THIRD_RAW, { asOf: AS_OF }),
-  },
-];
+const COMPARISON = SOURCES;
 
 function generate(name, inputs, source = SINGLE, directory = outDir) {
+  const synthetic = source === ZERO_STARS || source === ONE_STAR;
+  const title = Array.isArray(source)
+    ? aggregateMetadata(source.map((item) => item.metadata)).fullName
+    : source.metadata.fullName;
   const { config } = parseInputs({
     repository: 'rails/rails',
+    title: synthetic ? title : `${title} | ${SNAPSHOT_LABEL}`,
     ...inputs,
   });
-  const svg = Array.isArray(source)
+  const rendered = Array.isArray(source)
     ? renderMultiRepositoryStarChart(config, source, AS_OF)
     : renderStarChart(config, source.metadata, source.history, AS_OF);
+  const provenance = synthetic
+    ? { source: 'Synthetic edge fixture', asOf: snapshot.asOf }
+    : {
+        ...snapshot.provenance,
+        asOf: snapshot.asOf,
+        repositories: snapshot.repositories
+          .filter(
+            ({ metadata }) =>
+              source !== SINGLE || metadata.fullName === 'rails/rails',
+          )
+          .map(({ metadata, provenance }) => ({ metadata, provenance })),
+      };
+  const escaped = JSON.stringify(provenance)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+  const svg = rendered.replace(
+    /(<svg[^>]*>)/,
+    `$1<metadata id="example-provenance">${escaped}</metadata>`,
+  );
   writeFileSync(join(directory, `${name}.svg`), svg);
   return svg.length;
 }
@@ -321,69 +277,13 @@ console.log(
   `Generated ${jobs.length} example SVGs (${(total / 1024).toFixed(0)} KB total).`,
 );
 
-// Reuse the full catalog for Pages, keeping its source histories and options
-// while making the synthetic branding explicit, including comparison legends.
+// Pages shows the same frozen repository data, not data for the entered repo.
 const siteDir = join(root, 'docs', 'samples');
 mkdirSync(siteDir, { recursive: true });
-const siteComparison = COMPARISON.map((source, index) => ({
-  ...source,
-  metadata: {
-    ...source.metadata,
-    owner: 'sample',
-    repo: `synthetic-${index + 1}`,
-    fullName:
-      index === 0
-        ? 'Synthetic demonstration'
-        : `Synthetic demonstration ${index + 1}`,
-    stargazersCount: source.history.totalAdded,
-  },
-}));
-const siteAggregate = {
-  ...AGGREGATE,
-  metadata: aggregateMetadata(siteComparison.map((source) => source.metadata)),
-};
-const siteZeroStars = {
-  ...ZERO_STARS,
-  metadata: {
-    ...ZERO_STARS.metadata,
-    fullName: 'Synthetic demonstration: zero star',
-  },
-};
-const siteOneStar = {
-  ...ONE_STAR,
-  metadata: {
-    ...ONE_STAR.metadata,
-    fullName: 'Synthetic demonstration: one star',
-  },
-};
 for (const [name, inputs, source = SINGLE] of jobs) {
-  const siteSource =
-    source === AGGREGATE
-      ? siteAggregate
-      : Array.isArray(source)
-        ? siteComparison
-        : source === ZERO_STARS
-          ? siteZeroStars
-          : source === ONE_STAR
-            ? siteOneStar
-            : siteComparison[0];
-  generate(
-    name,
-    {
-      ...inputs,
-      ...(inputs.repositories
-        ? {
-            repositories: siteComparison
-              .map(({ metadata }) => `${metadata.owner}/${metadata.repo}`)
-              .join(','),
-          }
-        : {}),
-    },
-    siteSource,
-    siteDir,
-  );
+  generate(name, inputs, source, siteDir);
 }
-console.log(`Generated ${jobs.length} synthetic example SVGs for docs/.`);
+console.log(`Generated ${jobs.length} matching example SVGs for docs/.`);
 
 // Root README GIF: a raster rendering of the light animated contributions hero
 // (`contributions-animated-once-light`), with the shading legend row hidden via
@@ -391,6 +291,7 @@ console.log(`Generated ${jobs.length} synthetic example SVGs for docs/.`);
 // legends; this is the single showcase GIF referenced from the README.
 const { config: leeConfig } = parseInputs({
   repository: 'rails/rails',
+  title: `rails/rails | ${SNAPSHOT_LABEL}`,
   style: 'contributions',
   theme: 'light',
   animation: 'once',

@@ -38,6 +38,7 @@ describe('contribution tile rasterization', () => {
           show_title: 'false',
           show_total: 'false',
           show_change: 'false',
+          weeks: '52',
         }),
         makeMetadata(),
         historyFromAdds(Array.from({ length: 52 }, () => 1)),

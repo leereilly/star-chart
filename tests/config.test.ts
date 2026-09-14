@@ -12,8 +12,8 @@ describe('parseInputs defaults', () => {
     const { config } = parse({});
     expect(config.style).toBe('contributions');
     expect(config.theme).toBe('light');
-    expect(config.weeks).toBe(52);
-    expect(config.period).toBe('1y');
+    expect(config.weeks).toBe(3000);
+    expect(config.period).toBe('all');
     expect(config.columns).toBe(52);
     expect(config.rows).toBe(26);
     expect(config.width).toBe(900);

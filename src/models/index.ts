@@ -78,9 +78,9 @@ export interface ChartConfig {
    * is ignored when it is true.
    */
   readonly dualTheme?: boolean;
-  /** Number of trailing API weeks to select (already resolved from period). */
+  /** Resolved trailing API week count; ignored when period is `all`. */
   readonly weeks: number;
-  /** Which period name, if any, drove the week count (for labelling). */
+  /** Named window; `all` uses creation to now, null uses explicit weeks. */
   readonly period: PeriodName | null;
   /** Horizontal display buckets. */
   readonly columns: number;
