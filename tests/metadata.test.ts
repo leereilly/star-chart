@@ -111,29 +111,33 @@ describe('action.yml metadata', () => {
       /https?:\/\/leereilly\.github\.io\/star-chart\/?/,
     );
     expect(trackedText).toContain('https://leereilly.net/star-chart/');
-    expect(trackedText).toContain('uses: leereilly/star-chart@v0.1');
+    expect(trackedText).toContain('uses: leereilly/star-chart@v0.2');
   });
 
-  it('pins installation guidance to the published v0.1 release', () => {
+  it('pins installation guidance to the published v0.2 release', () => {
     for (const [name, content] of [
       ['README.md', readme],
       ['docs/index.html', docs],
     ] as const) {
       expect(content, name).toContain(
-        'https://github.com/leereilly/star-chart/releases/tag/v0.1',
+        'https://github.com/leereilly/star-chart/releases/tag/v0.2',
       );
       expect(content, name).not.toContain('leereilly/star-chart@v1');
+      expect(content, name).not.toContain('leereilly/star-chart@v0.1');
     }
     expect(readme).toContain(
-      'npm install https://github.com/leereilly/star-chart/archive/refs/tags/v0.1.tar.gz',
+      'npm install https://github.com/leereilly/star-chart/archive/refs/tags/v0.2.tar.gz',
     );
     expect(readme).toContain("from 'star-chart-action'");
-    expect(readme).not.toContain('npm install star-chart-action@0.1');
+    expect(readme).not.toContain('npm install star-chart-action@0.2');
+    const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+    expect(pkg.version).toBe('0.2.0');
+    expect(readme).toContain('package version `0.2.0`');
     const workflowExample = readFileSync(
       '.github/workflows/update-star-chart.yml',
       'utf8',
     );
-    expect(workflowExample).toContain('uses: leereilly/star-chart@v0.1');
+    expect(workflowExample).toContain('uses: leereilly/star-chart@v0.2');
     expect(workflowExample).not.toContain('leereilly/star-chart@v1');
   });
 });
